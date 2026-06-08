@@ -80,7 +80,7 @@
   .product-card { background: var(--white); border: 0.5px solid rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; position: relative; }
   .product-card:hover { transform: translateY(-5px); box-shadow: 0 16px 48px rgba(0,0,0,0.1); }
   .product-img { height: 260px; background: #ffffff; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-  .product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px;  }
+  .product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
   .product-img-placeholder { width: 60px; height: 100px; background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(150,150,150,0.3)); border: 1px solid rgba(0,0,0,0.2); border-radius: 4px 4px 12px 12px; position: relative; }
   .product-img-placeholder::before { content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 28px; height: 16px; background: var(--charcoal); border-radius: 2px 2px 0 0; }
   .badge { position: absolute; top: 14px; left: 14px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; font-weight: 500; z-index: 1; }
@@ -135,24 +135,12 @@
   .size-btn.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--white); font-weight: 500; }
   .size-btn:not(.active):hover { border-color: var(--charcoal); color: var(--charcoal); }
 
-  /* ============ ADMIN PANEL ============ */
+  /* ADMIN PANEL */
   .admin-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
   .admin-overlay.open { display: flex; }
   .admin-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
-  .admin-panel {
-    position: absolute; right: 0; top: 0; bottom: 0;
-    width: min(520px, 100vw);
-    background: #fff;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.2);
-  }
-  .admin-header {
-    background: #0a0a0a; color: #fff;
-    padding: 1.5rem 2rem;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
-  }
+  .admin-panel { position: absolute; right: 0; top: 0; bottom: 0; width: min(520px, 100vw); background: #fff; display: flex; flex-direction: column; overflow: hidden; box-shadow: -8px 0 40px rgba(0,0,0,0.2); }
+  .admin-header { background: #0a0a0a; color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .admin-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; letter-spacing: 0.1em; }
   .admin-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 22px; cursor: pointer; transition: color 0.2s; line-height: 1; }
   .admin-close:hover { color: #fff; }
@@ -161,43 +149,21 @@
   .admin-form { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2.5rem; }
   .admin-field { display: flex; flex-direction: column; gap: 0.4rem; }
   .admin-field label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); font-weight: 500; }
-  .admin-field input, .admin-field select {
-    border: 0.5px solid rgba(0,0,0,0.2); padding: 11px 14px;
-    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--charcoal);
-    outline: none; transition: border 0.2s; background: #fafafa; border-radius: 0;
-    -webkit-appearance: none;
-  }
+  .admin-field input, .admin-field select { border: 0.5px solid rgba(0,0,0,0.2); padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--charcoal); outline: none; transition: border 0.2s; background: #fafafa; border-radius: 0; -webkit-appearance: none; }
   .admin-field input:focus, .admin-field select:focus { border-color: var(--charcoal); background: #fff; }
   .admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .img-upload-area {
-    border: 1px dashed rgba(0,0,0,0.2); padding: 1.5rem; text-align: center;
-    cursor: pointer; transition: all 0.2s; position: relative; background: #fafafa;
-  }
+  .img-upload-area { border: 1px dashed rgba(0,0,0,0.2); padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; background: #fafafa; }
   .img-upload-area:hover { border-color: var(--charcoal); background: #f5f5f5; }
   .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
   .img-upload-icon { font-size: 28px; margin-bottom: 0.5rem; opacity: 0.4; }
   .img-upload-text { font-size: 13px; color: var(--mid); letter-spacing: 0.04em; }
   .img-preview { width: 100%; height: 160px; object-fit: cover; display: none; margin-top: 0.75rem; border: 0.5px solid rgba(0,0,0,0.1); }
-  .admin-submit {
-    background: var(--charcoal); color: #fff; border: none;
-    padding: 15px; font-family: 'DM Sans', sans-serif; font-size: 12px;
-    letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer;
-    transition: background 0.2s; width: 100%; margin-top: 0.5rem;
-  }
+  .admin-submit { background: var(--charcoal); color: #fff; border: none; padding: 15px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 0.5rem; }
   .admin-submit:hover { background: #333; }
   .admin-product-list { display: flex; flex-direction: column; gap: 0.75rem; }
-  .admin-product-item {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 0.9rem 1rem; border: 0.5px solid rgba(0,0,0,0.1);
-    background: #fafafa; transition: background 0.2s;
-  }
+  .admin-product-item { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1rem; border: 0.5px solid rgba(0,0,0,0.1); background: #fafafa; transition: background 0.2s; }
   .admin-product-item:hover { background: #f0f0f0; }
-  .admin-product-thumb {
-    width: 44px; height: 44px; object-fit: cover;
-    border: 0.5px solid rgba(0,0,0,0.1); flex-shrink: 0;
-    background: #e8e8e8; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: rgba(0,0,0,0.2);
-  }
+  .admin-product-thumb { width: 44px; height: 44px; object-fit: cover; border: 0.5px solid rgba(0,0,0,0.1); flex-shrink: 0; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgba(0,0,0,0.2); }
   .admin-product-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .admin-product-info { flex: 1; min-width: 0; }
   .admin-product-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -207,31 +173,24 @@
   .admin-empty { text-align: center; padding: 2rem; color: var(--light); font-size: 14px; font-style: italic; }
   .admin-badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .admin-badge-opt { display: none; }
-  .admin-badge-opt + label {
-    padding: 7px 16px; border: 0.5px solid rgba(0,0,0,0.15); font-size: 11px;
-    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; color: var(--mid); transition: all 0.2s;
-  }
+  .admin-badge-opt + label { padding: 7px 16px; border: 0.5px solid rgba(0,0,0,0.15); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; color: var(--mid); transition: all 0.2s; }
   .admin-badge-opt:checked + label { background: var(--charcoal); color: #fff; border-color: var(--charcoal); }
-
 
   .search-bar { max-width: 480px; margin: 0 auto 2rem; }
   .search-wrap { position: relative; display: flex; align-items: center; }
   .search-icon { position: absolute; left: 16px; font-size: 14px; opacity: 0.4; pointer-events: none; }
-  #search-input {
-    width: 100%; padding: 13px 44px 13px 42px;
-    border: 0.5px solid rgba(0,0,0,0.15); background: #fff;
-    font-family: "DM Sans", sans-serif; font-size: 14px; color: #0a0a0a;
-    outline: none; transition: border 0.2s; letter-spacing: 0.02em;
-  }
+  #search-input { width: 100%; padding: 13px 44px 13px 42px; border: 0.5px solid rgba(0,0,0,0.15); background: #fff; font-family: "DM Sans", sans-serif; font-size: 14px; color: #0a0a0a; outline: none; transition: border 0.2s; letter-spacing: 0.02em; }
   #search-input:focus { border-color: #0a0a0a; }
   #search-input::placeholder { color: #aaa; }
-  .search-clear {
-    position: absolute; right: 12px;
-    background: none; border: none; cursor: pointer;
-    color: #aaa; font-size: 14px; padding: 4px;
-    transition: color 0.2s;
-  }
+  .search-clear { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #aaa; font-size: 14px; padding: 4px; transition: color 0.2s; }
   .search-clear:hover { color: #0a0a0a; }
+
+  /* LOADING OVERLAY */
+  .loading-overlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); z-index:500; align-items:center; justify-content:center; flex-direction:column; gap:1rem; }
+  .loading-overlay.show { display:flex; }
+  .loading-spinner { width:36px; height:36px; border:2px solid rgba(0,0,0,0.1); border-top-color:#0a0a0a; border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:#555; }
 
   @media (max-width: 768px) {
     nav ul { display: none; }
@@ -245,13 +204,18 @@
 </head>
 <body>
 
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando...</div>
+</div>
+
 <nav>
   <a href="#" class="logo" onclick="secretTap()" id="logo-link">Eshara <em>Aromas</em></a>
   <ul>
     <li><a href="#catalogo">Catálogo</a></li>
     <li><a href="#como-funciona">Cómo funciona</a></li>
     <li><a href="#contacto" class="nav-cta">Pedir ahora</a></li>
-    
   </ul>
 </nav>
 
@@ -309,14 +273,15 @@
       <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">✕</button>
     </div>
   </div>
-
   <div class="filter-bar">
     <button class="filter-btn active" data-filter="todos">Todos</button>
     <button class="filter-btn" data-filter="masculino">Masculinos</button>
     <button class="filter-btn" data-filter="femenino">Femeninos</button>
     <button class="filter-btn" data-filter="unisex">Unisex</button>
   </div>
-  <div class="catalogue-grid" id="catalogue-grid"></div>
+  <div class="catalogue-grid" id="catalogue-grid">
+    <p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">Cargando productos...</p>
+  </div>
 </section>
 
 <!-- HOW -->
@@ -352,8 +317,6 @@
 
 <footer><p>© 2025 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
 
-
-
 <!-- PRODUCT DETAIL -->
 <div id="product-detail" style="display:none; position:fixed; inset:0; background:#fff; z-index:200; overflow-y:auto;">
   <div style="max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;">
@@ -364,7 +327,7 @@
     </div>
     <div id="detail-img-wrap" style="background:#ffffff; height:300px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
       <div style="position:absolute; font-family:'Cormorant Garamond',serif; font-size:120px; font-weight:300; color:rgba(0,0,0,0.04); letter-spacing:0.1em; user-select:none;">EA</div>
-      <img id="detail-img" src="" alt="" style="width:100%; height:100%; object-fit:contain; padding:10px; ; display:none; position:relative; z-index:1;">
+      <img id="detail-img" src="" alt="" style="width:100%; height:100%; object-fit:contain; padding:10px; display:none; position:relative; z-index:1;">
       <div id="detail-placeholder" style="position:relative; z-index:1; width:100px; height:160px; background:linear-gradient(145deg,rgba(255,255,255,0.95),rgba(160,160,160,0.25)); border:1px solid rgba(0,0,0,0.18); border-radius:6px 6px 18px 18px;">
         <div style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:46px; height:30px; background:#0a0a0a; border-radius:3px 3px 0 0;"></div>
         <div style="position:absolute; bottom:28px; left:50%; transform:translateX(-50%); width:66px; text-align:center; border:0.5px solid rgba(0,0,0,0.2); padding:7px 4px; background:rgba(255,255,255,0.6);">
@@ -404,11 +367,8 @@
       <button class="admin-close" onclick="closeAdmin()">✕</button>
     </div>
     <div class="admin-body">
-
-      <!-- ADD PRODUCT FORM -->
       <div class="admin-section-title">Agregar nuevo producto</div>
       <div class="admin-form">
-
         <div class="admin-field">
           <label>Imagen del producto</label>
           <div class="img-upload-area" id="upload-area">
@@ -418,7 +378,6 @@
             <img class="img-preview" id="img-preview" alt="preview">
           </div>
         </div>
-
         <div class="admin-row">
           <div class="admin-field">
             <label>Marca</label>
@@ -434,17 +393,14 @@
             </select>
           </div>
         </div>
-
         <div class="admin-field">
           <label>Nombre del perfume</label>
           <input type="text" id="f-name" placeholder="Ej: Sauvage EDP">
         </div>
-
         <div class="admin-field">
           <label>Notas olfativas</label>
           <input type="text" id="f-notes" placeholder="Ej: Bergamota · Pimienta · Ambroxan">
         </div>
-
         <div class="admin-row">
           <div class="admin-field">
             <label>Precio 5 ml (Gs.)</label>
@@ -455,7 +411,6 @@
             <input type="number" id="f-price10" placeholder="Ej: 62000">
           </div>
         </div>
-
         <div class="admin-field">
           <label>Etiqueta (opcional)</label>
           <div class="admin-badge-row">
@@ -469,74 +424,79 @@
             <label for="b-sale">Oferta</label>
           </div>
         </div>
-
         <button class="admin-submit" onclick="addProduct()">+ Agregar al catálogo</button>
       </div>
-
-      <!-- PRODUCT LIST -->
       <div class="admin-section-title" style="margin-top:1rem;">Productos en catálogo (<span id="product-count">0</span>)</div>
       <div class="admin-product-list" id="admin-product-list"></div>
-
     </div>
   </div>
 </div>
 
-<script>
-  // ── DATA ──────────────────────────────────────────────────
-  const DEFAULT_PRODUCTS = [
-    { id: 1, brand: 'Dior', name: 'Sauvage EDP', notes: 'Bergamota · Pimienta · Ambroxan', price5: 35000, price10: 62000, badge: 'hot', category: 'masculino', img: '' },
-    { id: 2, brand: 'Chanel', name: 'Chance Eau Tendre', notes: 'Pomelo · Jazmín · Almizcle blanco', price5: 42000, price10: 75000, badge: 'new', category: 'femenino', img: '' },
-    { id: 3, brand: 'YSL', name: 'Black Opium', notes: 'Café negro · Vainilla · Cedro', price5: 38000, price10: 68000, badge: '', category: 'femenino', img: '' },
-    { id: 4, brand: 'Creed', name: 'Aventus', notes: 'Piña · Abedul · Musgo de roble', price5: 55000, price10: 98000, badge: 'sale', category: 'masculino', img: '' },
-    { id: 5, brand: 'Tom Ford', name: 'Lost Cherry', notes: 'Cereza · Almendra amarga · Madera', price5: 60000, price10: 105000, badge: '', category: 'unisex', img: '' },
-    { id: 6, brand: 'Maison Margiela', name: 'Replica — Beach Walk', notes: 'Coco · Limón siciliano · Heliotropo', price5: 48000, price10: 85000, badge: 'new', category: 'unisex', img: '' }
-  ];
+<!-- FIREBASE SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  function loadProducts() {
-    try {
-      const saved = localStorage.getItem('ea_products');
-      return saved ? JSON.parse(saved) : DEFAULT_PRODUCTS;
-    } catch(e) { return DEFAULT_PRODUCTS; }
-  }
+  // ── FIREBASE CONFIG ──────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCTiZAtojbN6yjTKIOe86MXBK-AzGb55yk",
+    authDomain: "esharaaromas.firebaseapp.com",
+    projectId: "esharaaromas",
+    storageBucket: "esharaaromas.firebasestorage.app",
+    messagingSenderId: "988516122255",
+    appId: "1:988516122255:web:ef24ec7e9326f702337afa"
+  };
 
-  function saveProducts() {
-    try { localStorage.setItem('ea_products', JSON.stringify(products)); } catch(e) {}
-  }
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  let products = loadProducts();
+  // ── CLOUDINARY CONFIG ────────────────────────────────────
+  const CLOUD_NAME = "dzn2zbqpr";
+  const UPLOAD_PRESET = "qnsjs5t1";
+
+  // ── STATE ────────────────────────────────────────────────
+  let products = [];
   let currentProduct = null;
   let selectedMl = 5;
   let pendingImg = '';
   let adminMode = false;
   let tapCount = 0;
   let tapTimer = null;
-
-  function secretTap() {
-    tapCount++;
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
-    if (tapCount >= 5) {
-      tapCount = 0;
-      openAdmin();
-    }
-  }
   let activeFilter = 'todos';
-  let nextId = products.length ? Math.max(...products.map(p=>p.id)) + 1 : 1;
+  let searchQuery = '';
 
-  // ── SEARCH ───────────────────────────────────────────────
-  let searchQuery = "";
-
-  function searchProducts(val) {
-    searchQuery = val.toLowerCase().trim();
-    document.getElementById("search-clear").style.display = searchQuery ? "block" : "none";
-    renderCatalogue();
+  // ── RATE LIMITING ────────────────────────────────────────
+  const rateLimiter = { attempts: 0, lastReset: Date.now() };
+  function checkRateLimit() {
+    const now = Date.now();
+    if (now - rateLimiter.lastReset > 60000) { rateLimiter.attempts = 0; rateLimiter.lastReset = now; }
+    rateLimiter.attempts++;
+    return rateLimiter.attempts <= 10;
   }
 
-  function clearSearch() {
-    searchQuery = "";
-    document.getElementById("search-input").value = "";
-    document.getElementById("search-clear").style.display = "none";
-    renderCatalogue();
+  // ── SANITIZE ─────────────────────────────────────────────
+  function sanitize(str) {
+    return String(str).replace(/[<>'"&]/g, c => ({'<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;','&':'&amp;'}[c])).trim().slice(0, 200);
+  }
+
+  // ── LOADING ──────────────────────────────────────────────
+  function showLoading(msg) {
+    const el = document.getElementById('loading-overlay');
+    el.querySelector('.loading-text').textContent = msg || 'Cargando...';
+    el.classList.add('show');
+  }
+  function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
+
+  // ── FIRESTORE: LISTEN REALTIME ───────────────────────────
+  function initRealtimeListener() {
+    const q = query(collection(db, "productos"), orderBy("createdAt", "asc"));
+    onSnapshot(q, (snapshot) => {
+      products = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+      renderCatalogue();
+      if (adminMode) renderAdminList();
+    }, (error) => {
+      console.error("Error escuchando productos:", error);
+    });
   }
 
   // ── RENDER CATALOGUE ─────────────────────────────────────
@@ -547,30 +507,27 @@
       filtered = filtered.filter(p =>
         p.name.toLowerCase().includes(searchQuery) ||
         p.brand.toLowerCase().includes(searchQuery) ||
-        p.notes.toLowerCase().includes(searchQuery)
+        (p.notes || '').toLowerCase().includes(searchQuery)
       );
     }
     if (!filtered.length) {
       grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? 'Sin resultados para "' + searchQuery + '".' : 'No hay productos en esta categoría todavía.') + '</p>';
       return;
     }
-    grid.innerHTML = filtered.map((p, i) => {
-      const realIdx = products.indexOf(p);
+    grid.innerHTML = filtered.map((p) => {
       const badgeHTML = p.badge ? `<span class="badge badge-${p.badge}">${p.badge==='new'?'Nuevo':p.badge==='hot'?'Más pedido':'Oferta'}</span>` : '';
-      const imgHTML = p.img
-        ? `<img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">`
-        : `<div class="product-img-placeholder"></div>`;
+      const imgHTML = p.img ? `<img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">` : `<div class="product-img-placeholder"></div>`;
       return `
-      <div class="product-card" onclick="openDetail(${realIdx})">
-        <button class="card-delete-btn" onclick="deleteCard(event,${p.id})">✕</button>
+      <div class="product-card" onclick="openDetail('${p.firestoreId}')">
+        <button class="card-delete-btn" onclick="event.stopPropagation();deleteProduct('${p.firestoreId}')">✕</button>
         <div class="product-img">${badgeHTML}${imgHTML}</div>
         <div class="product-info">
           <div class="product-brand">${p.brand}</div>
           <div class="product-name">${p.name}</div>
-          <div class="product-notes">${p.notes}</div>
+          <div class="product-notes">${p.notes || '—'}</div>
           <div class="product-footer">
-            <div class="product-price">Gs. ${p.price5.toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>
-            <button class="btn-add" onclick="event.stopPropagation();openDetail(${realIdx})">Pedir</button>
+            <div class="product-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>
+            <button class="btn-add" onclick="event.stopPropagation();openDetail('${p.firestoreId}')">Pedir</button>
           </div>
         </div>
       </div>`;
@@ -579,59 +536,58 @@
   }
 
   // ── DETAIL ────────────────────────────────────────────────
-  function openDetail(index) {
-    currentProduct = products[index];
+  window.openDetail = function(firestoreId) {
+    currentProduct = products.find(p => p.firestoreId === firestoreId);
+    if (!currentProduct) return;
     selectedMl = 5;
     document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.size-btn')[0].classList.add('active');
     renderDetail();
     document.getElementById('product-detail').style.display = 'block';
     document.body.style.overflow = 'hidden';
-    document.getElementById('product-detail').scrollTop = 0;
-  }
+  };
 
   function renderDetail() {
     const p = currentProduct;
     document.getElementById('detail-brand').textContent = p.brand;
     document.getElementById('detail-name').textContent = p.name;
-    document.getElementById('detail-notes').textContent = p.notes;
+    document.getElementById('detail-notes').textContent = p.notes || '—';
     document.getElementById('detail-brand-label').innerHTML = p.brand + '<br>' + p.name.split(' ')[0];
     const price = selectedMl === 5 ? p.price5 : p.price10;
-    document.getElementById('detail-price').textContent = 'Gs. ' + price.toLocaleString('es-PY') + ' / ' + selectedMl + 'ml';
+    document.getElementById('detail-price').textContent = 'Gs. ' + Number(price).toLocaleString('es-PY') + ' / ' + selectedMl + 'ml';
     const img = document.getElementById('detail-img');
     const placeholder = document.getElementById('detail-placeholder');
-    if (p.img) {
-      img.src = p.img; img.style.display = 'block'; placeholder.style.display = 'none';
-    } else {
-      img.style.display = 'none'; placeholder.style.display = 'block';
-    }
+    if (p.img) { img.src = p.img; img.style.display = 'block'; placeholder.style.display = 'none'; }
+    else { img.style.display = 'none'; placeholder.style.display = 'block'; }
   }
 
-  function closeDetail() {
+  window.closeDetail = function() {
     document.getElementById('product-detail').style.display = 'none';
     document.body.style.overflow = '';
-  }
+  };
 
-  function selectSize(btn, ml) {
+  window.selectSize = function(btn, ml) {
     selectedMl = ml;
     document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderDetail();
-  }
+  };
 
-  function orderWhatsApp() {
+  window.orderWhatsApp = function() {
     const p = currentProduct;
     const price = selectedMl === 5 ? p.price5 : p.price10;
-    const msg = encodeURIComponent('Hola! Quiero pedir:\n🖤 ' + p.brand + ' — ' + p.name + '\n📦 Tamaño: ' + selectedMl + 'ml\n💰 Gs. ' + price.toLocaleString('es-PY'));
+    const msg = encodeURIComponent('Hola! Quiero pedir:\n🖤 ' + p.brand + ' — ' + p.name + '\n📦 Tamaño: ' + selectedMl + 'ml\n💰 Gs. ' + Number(price).toLocaleString('es-PY'));
     window.open('https://wa.me/595982413137?text=' + msg, '_blank');
-  }
+  };
 
-  // ── ADMIN ─────────────────────────────────────────────────
-  function openAdmin() {
-    // password check async wrapper
-    openAdminAuth();
-    return;
-  }
+  // ── ADMIN AUTH ────────────────────────────────────────────
+  window.secretTap = function() {
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+    if (tapCount >= 5) { tapCount = 0; openAdminAuth(); }
+  };
+
   async function openAdminAuth() {
     const pass = prompt("🔐 Contraseña de administrador:");
     if (!pass) return;
@@ -645,32 +601,26 @@
     adminMode = true;
     document.body.classList.add('admin-mode');
     document.getElementById('admin-overlay').classList.add('open');
-    
     renderAdminList();
   }
 
-  function closeAdmin() {
+  window.closeAdmin = function() {
     document.getElementById('admin-overlay').classList.remove('open');
-  }
+  };
 
-  async function previewImage(e) {
+  // ── UPLOAD IMAGE TO CLOUDINARY ───────────────────────────
+  window.previewImage = async function(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const uploadText = document.querySelector('#upload-area .img-upload-text');
     const uploadIcon = document.querySelector('#upload-area .img-upload-icon');
     uploadText.textContent = '⏳ Subiendo imagen...';
     uploadIcon.style.display = 'none';
-
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'qnsjs5t1');
-
+    formData.append('upload_preset', UPLOAD_PRESET);
     try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dzn2zbqpr/image/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.secure_url) {
         pendingImg = data.secure_url;
@@ -683,80 +633,93 @@
         uploadIcon.style.display = 'block';
       }
     } catch(err) {
-      uploadText.textContent = '✗ Error de conexión. Intentá de nuevo.';
+      uploadText.textContent = '✗ Error de conexión.';
       uploadIcon.style.display = 'block';
     }
-  }
+  };
 
-  function addProduct() {
-    const brand = document.getElementById('f-brand').value.trim();
-    const name = document.getElementById('f-name').value.trim();
-    const notes = document.getElementById('f-notes').value.trim();
+  // ── ADD PRODUCT TO FIRESTORE ──────────────────────────────
+  window.addProduct = async function() {
+    if (!checkRateLimit()) { alert('Demasiados intentos. Esperá un momento.'); return; }
+    const brand = sanitize(document.getElementById('f-brand').value);
+    const name = sanitize(document.getElementById('f-name').value);
+    const notes = sanitize(document.getElementById('f-notes').value);
     const price5 = parseInt(document.getElementById('f-price5').value);
     const price10 = parseInt(document.getElementById('f-price10').value);
     const category = document.getElementById('f-cat').value;
     const badge = document.querySelector('input[name="badge"]:checked')?.value || '';
-
-    if (!brand || !name || !price5 || !price10) {
-      alert('Por favor completá al menos: Marca, Nombre, Precio 5ml y Precio 10ml.');
-      return;
+    if (!brand || !name || !price5 || !price10) { alert('Por favor completá al menos: Marca, Nombre, Precio 5ml y Precio 10ml.'); return; }
+    showLoading('Guardando producto...');
+    try {
+      await addDoc(collection(db, "productos"), {
+        brand, name, notes: notes || '—', price5, price10, badge, category,
+        img: pendingImg,
+        createdAt: Date.now()
+      });
+      // reset form
+      document.getElementById('f-brand').value = '';
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-notes').value = '';
+      document.getElementById('f-price5').value = '';
+      document.getElementById('f-price10').value = '';
+      document.getElementById('f-cat').value = 'todos';
+      document.getElementById('b-none').checked = true;
+      pendingImg = '';
+      const preview = document.getElementById('img-preview');
+      preview.style.display = 'none'; preview.src = '';
+      document.getElementById('img-input').value = '';
+      document.querySelector('#upload-area .img-upload-icon').style.display = 'block';
+      document.querySelector('#upload-area .img-upload-text').textContent = 'Tocá para seleccionar foto de tu galería';
+    } catch(err) {
+      alert('Error al guardar. Verificá tu conexión.');
+      console.error(err);
     }
+    hideLoading();
+  };
 
-    const newProduct = { id: nextId++, brand, name, notes: notes || '—', price5, price10, badge, category, img: pendingImg };
-    products.push(newProduct);
-    saveProducts();
-    renderCatalogue();
-    renderAdminList();
-
-    // reset form
-    document.getElementById('f-brand').value = '';
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-notes').value = '';
-    document.getElementById('f-price5').value = '';
-    document.getElementById('f-price10').value = '';
-    document.getElementById('f-cat').value = 'todos';
-    document.getElementById('b-none').checked = true;
-    pendingImg = '';
-    const preview = document.getElementById('img-preview');
-    preview.style.display = 'none'; preview.src = '';
-    document.getElementById('img-input').value = '';
-    document.querySelector('#upload-area .img-upload-icon').style.display = 'block';
-    document.querySelector('#upload-area .img-upload-text').textContent = 'Tocá para seleccionar foto de tu galería';
-
-    // scroll catalog into view
-    document.getElementById('catalogue-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function deleteCard(e, id) {
-    e.stopPropagation();
+  // ── DELETE PRODUCT FROM FIRESTORE ─────────────────────────
+  window.deleteProduct = async function(firestoreId) {
     if (!confirm('¿Eliminar este producto?')) return;
-    products = products.filter(p => p.id !== id);
-    saveProducts();
-    renderCatalogue();
-    renderAdminList();
-  }
+    showLoading('Eliminando...');
+    try {
+      await deleteDoc(doc(db, "productos", firestoreId));
+    } catch(err) {
+      alert('Error al eliminar.');
+      console.error(err);
+    }
+    hideLoading();
+  };
 
+  // ── ADMIN LIST ────────────────────────────────────────────
   function renderAdminList() {
     const list = document.getElementById('admin-product-list');
     document.getElementById('product-count').textContent = products.length;
-    if (!products.length) {
-      list.innerHTML = '<div class="admin-empty">No hay productos aún.</div>';
-      return;
-    }
+    if (!products.length) { list.innerHTML = '<div class="admin-empty">No hay productos aún.</div>'; return; }
     list.innerHTML = products.map(p => `
       <div class="admin-product-item">
-        <div class="admin-product-thumb">
-          ${p.img ? `<img src="${p.img}" alt="${p.name}">` : '🖤'}
-        </div>
+        <div class="admin-product-thumb">${p.img ? `<img src="${p.img}" alt="${p.name}">` : '🖤'}</div>
         <div class="admin-product-info">
           <div class="admin-product-name">${p.brand} — ${p.name}</div>
-          <div class="admin-product-price">5ml: Gs. ${p.price5.toLocaleString('es-PY')} &nbsp;·&nbsp; 10ml: Gs. ${p.price10.toLocaleString('es-PY')}</div>
+          <div class="admin-product-price">5ml: Gs. ${Number(p.price5).toLocaleString('es-PY')} &nbsp;·&nbsp; 10ml: Gs. ${Number(p.price10).toLocaleString('es-PY')}</div>
         </div>
-        <button class="admin-del-btn" onclick="deleteCard(event,${p.id})" title="Eliminar">✕</button>
+        <button class="admin-del-btn" onclick="deleteProduct('${p.firestoreId}')" title="Eliminar">✕</button>
       </div>`).join('');
   }
 
-  // ── FILTER ────────────────────────────────────────────────
+  // ── SEARCH & FILTER ───────────────────────────────────────
+  window.searchProducts = function(val) {
+    searchQuery = val.toLowerCase().trim();
+    document.getElementById("search-clear").style.display = searchQuery ? "block" : "none";
+    renderCatalogue();
+  };
+
+  window.clearSearch = function() {
+    searchQuery = "";
+    document.getElementById("search-input").value = "";
+    document.getElementById("search-clear").style.display = "none";
+    renderCatalogue();
+  };
+
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -767,7 +730,7 @@
   });
 
   // ── INIT ──────────────────────────────────────────────────
-  renderCatalogue();
+  initRealtimeListener();
 </script>
 </body>
 </html>
