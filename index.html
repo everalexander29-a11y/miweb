@@ -471,7 +471,7 @@
   </div>
 </section>
 
-<footer><p>© 2026 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
+<footer><p>© 2025 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
 
 <!-- PRODUCT DETAIL -->
 <div id="product-detail" style="display:none; position:fixed; inset:0; background:#fff; z-index:200; overflow-y:auto;">
@@ -479,7 +479,7 @@
     <div style="display:flex; align-items:center; padding:1.1rem 1.5rem; border-bottom:0.5px solid rgba(0,0,0,0.1); position:sticky; top:0; background:#fff; z-index:10;">
       <button onclick="closeDetail()" style="background:none; border:none; cursor:pointer; color:#777; font-family:'DM Sans',sans-serif; font-size:12px; padding:0; letter-spacing:0.1em; text-transform:uppercase;">← Volver</button>
       <span style="flex:1; text-align:center; font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase;">Detalle</span>
-      <div style="width:60px;"></div>
+      <button onclick="compartirProducto()" style="background:none;border:none;cursor:pointer;font-size:20px;padding:4px;" title="Compartir">📤</button>
     </div>
     <div id="detail-img-wrap" style="background:#ffffff; height:300px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
       <div style="position:absolute; font-family:'Cormorant Garamond',serif; font-size:120px; font-weight:300; color:rgba(0,0,0,0.04); letter-spacing:0.1em; user-select:none;">EA</div>
@@ -494,7 +494,7 @@
     <div style="padding:2.25rem 1.75rem; flex:1;">
       <div id="detail-brand" style="font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin-bottom:0.4rem;"></div>
       <div id="detail-name" style="font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; color:#0a0a0a; line-height:1.1; margin-bottom:0.5rem;"></div>
-      <div id="detail-notes" style="font-size:13px; color:#aaa; font-style:italic; margin-bottom:2rem;"></div>
+      <div id="detail-notes" style="font-size:13px; color:#aaa; font-style:italic; margin-bottom:1.25rem;"></div>
       <div id="detail-price" style="font-size:28px; font-weight:300; color:#0a0a0a; margin-bottom:1.5rem; font-family:'Cormorant Garamond',serif;"></div>
 
       <div style="margin-bottom:1.5rem;">
@@ -522,7 +522,7 @@
       <!-- SIMILAR PRODUCTS -->
       <div id="similar-section" style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);">
         <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:1.25rem;">También te puede gustar</div>
-        <div id="similar-grid" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+        <div id="similar-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;"></div>
       </div>
     </div>
   </div>
@@ -704,7 +704,9 @@
     <canvas id="offer-canvas" style="width:100%;border:0.5px solid rgba(0,0,0,0.1);display:none;"></canvas>
 
     <div id="share-actions" style="display:none;margin-top:1rem;display:none;flex-direction:column;gap:0.75rem;">
-      <button onclick="descargarImagenOferta()" style="background:#0a0a0a;color:#fff;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Descargar imagen</button>
+      <p style="font-size:12px;color:#888;text-align:center;margin-bottom:0.5rem;">En iPhone: tocá "Ver imagen completa", luego hacé captura de pantalla y compartila.</p>
+      <button onclick="verImagenCompleta()" style="background:#0a0a0a;color:#fff;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Ver imagen completa</button>
+      <button onclick="descargarImagenOferta()" style="background:#f0f0f0;color:#0a0a0a;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Descargar (en PC)</button>
       <button class="share-close-btn" onclick="closeShareModal()">Cerrar</button>
     </div>
     <button class="share-close-btn" id="share-close-only" onclick="closeShareModal()" style="margin-top:0.75rem;">Cerrar</button>
@@ -831,7 +833,13 @@
     document.getElementById('detail-notes').textContent = p.notes || '—';
     document.getElementById('detail-brand-label').innerHTML = p.brand + '<br>' + p.name.split(' ')[0];
     const price = selectedMl === 5 ? p.price5 : p.price10;
-    document.getElementById('detail-price').textContent = 'Gs. ' + Number(price).toLocaleString('es-PY') + ' / ' + selectedMl + 'ml';
+    const priceOld = selectedMl === 5 ? p.priceOld5 : p.priceOld10;
+    const priceEl = document.getElementById('detail-price');
+    if (priceOld) {
+      priceEl.innerHTML = `<span style="font-size:18px;color:#aaa;text-decoration:line-through;margin-right:10px;">Gs. ${Number(priceOld).toLocaleString('es-PY')}</span><span style="color:#c00;">Gs. ${Number(price).toLocaleString('es-PY')}</span><span style="font-size:16px;color:#aaa;"> / ${selectedMl}ml</span>`;
+    } else {
+      priceEl.textContent = 'Gs. ' + Number(price).toLocaleString('es-PY') + ' / ' + selectedMl + 'ml';
+    }
     const img = document.getElementById('detail-img');
     const placeholder = document.getElementById('detail-placeholder');
     if (p.img) { img.src = p.img; img.style.display = 'block'; placeholder.style.display = 'none'; }
@@ -1237,6 +1245,14 @@
     document.getElementById('share-close-only').style.display = 'none';
   };
 
+  window.verImagenCompleta = function() {
+    const canvas = document.getElementById('offer-canvas');
+    const dataUrl = canvas.toDataURL('image/png');
+    const win = window.open('', '_blank');
+    win.document.write(`<html><head><title>Oferta Eshara Aromas</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;}img{max-width:100%;height:auto;}</style></head><body><img src="${dataUrl}" alt="oferta"></body></html>`);
+    win.document.close();
+  };
+
   window.descargarImagenOferta = function() {
     const canvas = document.getElementById('offer-canvas');
     const firestoreId = document.getElementById('share-firestoreid').value;
@@ -1271,23 +1287,46 @@
 
   // ── SIMILAR PRODUCTS ──────────────────────────────────────
   function renderSimilar(p) {
-    const similar = products.filter(x => x.firestoreId !== p.firestoreId && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 3);
+    const similar = products.filter(x => x.firestoreId !== p.firestoreId && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 4);
     const grid = document.getElementById('similar-grid');
     const section = document.getElementById('similar-section');
     if (!similar.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
-    grid.innerHTML = similar.map(s => `
-      <div onclick="openDetail('${s.firestoreId}')" style="display:flex;gap:1rem;align-items:center;padding:0.75rem;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='transparent'">
-        <div style="width:52px;height:52px;flex-shrink:0;background:#f4f4f4;border:0.5px solid rgba(0,0,0,0.06);overflow:hidden;">
-          ${s.img ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;">EA</div>'}
+    grid.innerHTML = similar.map(s => {
+      const isAgotado = s.agotado === true;
+      const badgeHTML = isAgotado ? `<span class="badge badge-agotado" style="position:absolute;top:10px;left:10px;">Agotado</span>` : s.badge ? `<span class="badge badge-${s.badge}" style="position:absolute;top:10px;left:10px;">${s.badge==='new'?'Nuevo':s.badge==='hot'?'Mas pedido':'Oferta'}</span>` : '';
+      return `
+      <div onclick="openDetail('${s.firestoreId}')" style="background:#fff;border:0.5px solid rgba(0,0,0,0.1);overflow:hidden;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="height:160px;background:#fafafa;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          ${badgeHTML}
+          ${s.img ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:40px;height:70px;background:linear-gradient(145deg,rgba(255,255,255,0.9),rgba(150,150,150,0.3));border:1px solid rgba(0,0,0,0.2);border-radius:3px 3px 8px 8px;"></div>'}
         </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#888;">${s.brand}</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
-          <div style="font-size:13px;color:#555;">Gs. ${Number(s.price5).toLocaleString('es-PY')} / 5ml</div>
+        <div style="padding:0.9rem;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:2px;">${s.brand}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:#0a0a0a;line-height:1.2;margin-bottom:4px;">${s.name}</div>
+          ${s.priceOld5 ? `<div style="font-size:11px;color:#aaa;text-decoration:line-through;">Gs. ${Number(s.priceOld5).toLocaleString('es-PY')}</div><div style="font-size:13px;font-weight:500;color:#c00;">Gs. ${Number(s.price5).toLocaleString('es-PY')}<span style="font-size:11px;color:#aaa;font-weight:400;"> /5ml</span></div>` : `<div style="font-size:13px;color:#555;">Gs. ${Number(s.price5).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;">/5ml</span></div>`}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
+
+  // ── COMPARTIR PRODUCTO ────────────────────────────────────
+  window.compartirProducto = function() {
+    const p = currentProduct;
+    if (!p) return;
+    const url = `${location.origin}${location.pathname}?producto=${p.firestoreId}`;
+    const precio5 = `Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
+    const precio10 = `Gs. ${Number(p.price10).toLocaleString('es-PY')}`;
+    const old5 = p.priceOld5 ? `antes Gs. ${Number(p.priceOld5).toLocaleString('es-PY')} → ` : '';
+    const msg = `${p.brand} - ${p.name}\n\n5ml: ${old5}${precio5}\n10ml: ${precio10}\n\nVer y pedir: ${url}`;
+
+    if (navigator.share) {
+      navigator.share({ title: `${p.brand} - ${p.name}`, text: msg, url }).catch(() => {});
+    } else {
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+  };
 
   // ── QUIZ ──────────────────────────────────────────────────
   let quizAnswers = {};
@@ -1391,6 +1430,19 @@
   initRealtimeListener();
   loadReviews();
   setStars(5);
+
+  // Abrir producto desde URL
+  const urlParams = new URLSearchParams(location.search);
+  const productoId = urlParams.get('producto');
+  if (productoId) {
+    const checkReady = setInterval(() => {
+      if (products.length > 0) {
+        clearInterval(checkReady);
+        const p = products.find(x => x.firestoreId === productoId);
+        if (p) openDetail(productoId);
+      }
+    }, 300);
+  }
 </script>
 </body>
 </html>
