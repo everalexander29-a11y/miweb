@@ -1248,29 +1248,51 @@
     ctx.letterSpacing = '2px';
     ctx.fillText(p.name, W/2, bottomStart + 65);
 
-    // Prices
-    const precioStr5 = `5ml   Gs. ${Number(precio5).toLocaleString('es-PY')}`;
-    const precioStr10 = `10ml  Gs. ${Number(precio10).toLocaleString('es-PY')}`;
+    // Prices — tachado al lado del nuevo precio
+    const drawPriceLine = (y, ml, oldPrice, newPrice) => {
+      ctx.textAlign = 'left';
+      const startX = W/2 - 220;
 
-    if (old5) {
+      // ML label
       ctx.fillStyle = sc;
-      ctx.font = '300 28px sans-serif';
-      ctx.fillText(`antes Gs. ${Number(old5).toLocaleString('es-PY')}`, W/2, bottomStart + 130);
-      const tw = ctx.measureText(`antes Gs. ${Number(old5).toLocaleString('es-PY')}`).width;
-      ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 2;
-      ctx.moveTo(W/2 - tw/2, bottomStart + 123); ctx.lineTo(W/2 + tw/2, bottomStart + 123); ctx.stroke();
-    }
+      ctx.font = '400 28px sans-serif';
+      ctx.fillText(`${ml}ml`, startX, y);
 
-    ctx.fillStyle = tc;
-    ctx.font = '400 34px sans-serif';
-    ctx.fillText(precioStr5, W/2, bottomStart + (old5 ? 175 : 140));
-    ctx.fillText(precioStr10, W/2, bottomStart + (old5 ? 220 : 185));
+      // Old price tachado
+      if (oldPrice) {
+        ctx.fillStyle = sc;
+        ctx.font = '300 26px sans-serif';
+        const oldText = `Gs. ${Number(oldPrice).toLocaleString('es-PY')}`;
+        ctx.fillText(oldText, startX + 90, y);
+        const tw = ctx.measureText(oldText).width;
+        ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 2;
+        ctx.moveTo(startX + 90, y - 8); ctx.lineTo(startX + 90 + tw, y - 8); ctx.stroke();
+
+        // Arrow
+        ctx.fillStyle = sc;
+        ctx.font = '300 24px sans-serif';
+        ctx.fillText('→', startX + 90 + tw + 12, y);
+
+        // New price in red
+        ctx.fillStyle = '#c00';
+        ctx.font = 'bold 32px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90 + tw + 48, y);
+      } else {
+        ctx.fillStyle = tc;
+        ctx.font = '400 32px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90, y);
+      }
+      ctx.textAlign = 'center';
+    };
+
+    drawPriceLine(bottomStart + 145, 5, old5, precio5);
+    drawPriceLine(bottomStart + 195, 10, old10, precio10);
 
     // Fecha
     if (fecha) {
       ctx.fillStyle = '#c00';
       ctx.font = 'bold 30px sans-serif';
-      ctx.fillText(fecha, W/2, bottomStart + (old5 ? 270 : 240));
+      ctx.fillText(fecha, W/2, bottomStart + 250);
     }
 
     // Divider
