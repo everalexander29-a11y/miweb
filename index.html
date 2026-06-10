@@ -664,11 +664,50 @@
 <div class="share-overlay" id="share-overlay">
   <div class="share-backdrop" onclick="closeShareModal()"></div>
   <div class="share-modal">
-    <h3>Compartir oferta</h3>
+    <h3>Generar imagen de oferta</h3>
     <input type="hidden" id="share-firestoreid">
-    <div class="share-preview" id="share-preview" contenteditable="true"></div>
-    <button class="share-wa-btn" onclick="sendShareWhatsApp()">Enviar por WhatsApp</button>
-    <button class="share-close-btn" onclick="closeShareModal()">Cerrar</button>
+
+    <!-- Personalizar -->
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.25rem;">
+      <div class="admin-row">
+        <div class="admin-field">
+          <label>Texto encabezado</label>
+          <input type="text" id="share-titulo" value="Oferta especial" placeholder="Ej: Solo hoy">
+        </div>
+        <div class="admin-field">
+          <label>Descuento (opcional)</label>
+          <input type="text" id="share-descuento" placeholder="Ej: 25% OFF">
+        </div>
+      </div>
+      <div class="admin-field">
+        <label>Texto pie de imagen</label>
+        <input type="text" id="share-pie" value="Entrega inmediata · Eshara Aromas" placeholder="Texto abajo">
+      </div>
+      <div class="admin-row">
+        <div class="admin-field">
+          <label>Fondo</label>
+          <select id="share-fondo">
+            <option value="claro">Claro</option>
+            <option value="oscuro">Oscuro</option>
+            <option value="crema">Crema</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Fecha (opcional)</label>
+          <input type="text" id="share-fecha" placeholder="Ej: Solo hoy 10 de junio">
+        </div>
+      </div>
+      <button onclick="generarImagenOferta()" style="background:#0a0a0a;color:#fff;border:none;padding:12px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Generar imagen</button>
+    </div>
+
+    <!-- Canvas preview -->
+    <canvas id="offer-canvas" style="width:100%;border:0.5px solid rgba(0,0,0,0.1);display:none;"></canvas>
+
+    <div id="share-actions" style="display:none;margin-top:1rem;display:none;flex-direction:column;gap:0.75rem;">
+      <button onclick="descargarImagenOferta()" style="background:#0a0a0a;color:#fff;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Descargar imagen</button>
+      <button class="share-close-btn" onclick="closeShareModal()">Cerrar</button>
+    </div>
+    <button class="share-close-btn" id="share-close-only" onclick="closeShareModal()" style="margin-top:0.75rem;">Cerrar</button>
   </div>
 </div>
 
@@ -1067,31 +1106,145 @@
     hideLoading();
   };
 
-  // ── SHARE MODAL ───────────────────────────────────────────
+  // ── SHARE / IMAGE GENERATOR ───────────────────────────────
   window.openShareModal = function(firestoreId) {
     const p = products.find(x => x.firestoreId === firestoreId);
     if (!p) return;
-    const msg = generarMensajeOferta(p);
-    document.getElementById('share-preview').textContent = msg;
     document.getElementById('share-firestoreid').value = firestoreId;
+    const canvas = document.getElementById('offer-canvas');
+    canvas.style.display = 'none';
+    document.getElementById('share-actions').style.display = 'none';
+    document.getElementById('share-close-only').style.display = 'block';
     document.getElementById('share-overlay').classList.add('open');
   };
-
-  function generarMensajeOferta(p) {
-    const precio5 = `Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
-    const precio10 = `Gs. ${Number(p.price10).toLocaleString('es-PY')}`;
-    const old5 = p.priceOld5 ? `antes Gs. ${Number(p.priceOld5).toLocaleString('es-PY')} → ` : '';
-    const old10 = p.priceOld10 ? `antes Gs. ${Number(p.priceOld10).toLocaleString('es-PY')} → ` : '';
-    return `Eshara Aromas\n\n${p.brand} - ${p.name}\n\n5ml: ${old5}${precio5}\n10ml: ${old10}${precio10}\n\nEscribime para pedirlo!\nEntrega inmediata`;
-  }
 
   window.closeShareModal = function() {
     document.getElementById('share-overlay').classList.remove('open');
   };
 
-  window.sendShareWhatsApp = function() {
-    const msg = document.getElementById('share-preview').textContent;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  window.generarImagenOferta = async function() {
+    const firestoreId = document.getElementById('share-firestoreid').value;
+    const p = products.find(x => x.firestoreId === firestoreId);
+    if (!p) return;
+
+    const titulo = document.getElementById('share-titulo').value || 'Oferta especial';
+    const descuento = document.getElementById('share-descuento').value || '';
+    const pie = document.getElementById('share-pie').value || 'Eshara Aromas';
+    const fecha = document.getElementById('share-fecha').value || '';
+    const fondo = document.getElementById('share-fondo').value;
+
+    const canvas = document.getElementById('offer-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 1080, H = 1080;
+    canvas.width = W; canvas.height = H;
+    canvas.style.display = 'block';
+
+    // Background
+    const bgColors = { claro: '#f5f5f3', oscuro: '#0a0a0a', crema: '#f0ebe3' };
+    const textColors = { claro: '#0a0a0a', oscuro: '#ffffff', crema: '#2a2a2a' };
+    const subColors = { claro: '#888', oscuro: 'rgba(255,255,255,0.5)', crema: '#888' };
+    const bg = bgColors[fondo]; const tc = textColors[fondo]; const sc = subColors[fondo];
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Top bar
+    ctx.fillStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, 0, W, 90);
+
+    // Brand name top
+    ctx.fillStyle = tc;
+    ctx.font = '300 32px serif';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '8px';
+    ctx.fillText('ESHARA  AROMAS', W/2, 56);
+
+    // Titulo / descuento
+    if (descuento) {
+      ctx.fillStyle = '#c00';
+      ctx.font = 'bold 72px sans-serif';
+      ctx.fillText(descuento, W/2, 175);
+    }
+    ctx.fillStyle = tc;
+    ctx.font = `300 ${descuento ? '36' : '52'}px serif`;
+    ctx.fillText(titulo, W/2, descuento ? 225 : 175);
+
+    // Product image
+    if (p.img) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = p.img; });
+        const imgSize = 420;
+        const imgX = (W - imgSize) / 2;
+        const imgY = descuento ? 255 : 210;
+        ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+      } catch(e) { console.log('img error', e); }
+    }
+
+    const bottomStart = 700;
+
+    // Brand
+    ctx.fillStyle = sc;
+    ctx.font = '400 28px sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(p.brand.toUpperCase(), W/2, bottomStart);
+
+    // Name
+    ctx.fillStyle = tc;
+    ctx.font = '300 52px serif';
+    ctx.letterSpacing = '2px';
+    ctx.fillText(p.name, W/2, bottomStart + 65);
+
+    // Prices
+    const precio5 = `5ml   Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
+    const precio10 = `10ml  Gs. ${Number(p.price10).toLocaleString('es-PY')}`;
+
+    if (p.priceOld5) {
+      ctx.fillStyle = sc;
+      ctx.font = '300 28px sans-serif';
+      ctx.fillText(`antes Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}`, W/2, bottomStart + 130);
+      // strikethrough
+      const tw = ctx.measureText(`antes Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}`).width;
+      ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 2;
+      ctx.moveTo(W/2 - tw/2, bottomStart + 123); ctx.lineTo(W/2 + tw/2, bottomStart + 123); ctx.stroke();
+    }
+
+    ctx.fillStyle = tc;
+    ctx.font = '400 34px sans-serif';
+    ctx.fillText(precio5, W/2, bottomStart + (p.priceOld5 ? 175 : 140));
+    ctx.fillText(precio10, W/2, bottomStart + (p.priceOld5 ? 220 : 185));
+
+    // Fecha
+    if (fecha) {
+      ctx.fillStyle = '#c00';
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillText(fecha, W/2, bottomStart + (p.priceOld5 ? 270 : 240));
+    }
+
+    // Divider
+    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(100, H - 100); ctx.lineTo(W - 100, H - 100); ctx.stroke();
+
+    // Footer
+    ctx.fillStyle = sc;
+    ctx.font = '300 24px sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(pie.toUpperCase(), W/2, H - 55);
+
+    document.getElementById('share-actions').style.display = 'flex';
+    document.getElementById('share-close-only').style.display = 'none';
+  };
+
+  window.descargarImagenOferta = function() {
+    const canvas = document.getElementById('offer-canvas');
+    const firestoreId = document.getElementById('share-firestoreid').value;
+    const p = products.find(x => x.firestoreId === firestoreId);
+    const link = document.createElement('a');
+    link.download = `oferta-${p ? p.name.replace(/\s+/g,'-').toLowerCase() : 'eshara'}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   };
 
   window.searchProducts = function(val) {
