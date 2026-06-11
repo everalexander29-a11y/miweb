@@ -1206,135 +1206,102 @@
 
     const canvas = document.getElementById('offer-canvas');
     const ctx = canvas.getContext('2d');
-    const W = 1080, H = 1350;
+    const W = 1080, H = 1080;
     canvas.width = W; canvas.height = H;
     canvas.style.display = 'block';
 
-    // Background
-    const bgColors = { claro: '#f2f2f0', oscuro: '#0a0a0a', crema: '#f0ebe3' };
+    const bgColors = { claro: '#f5f5f3', oscuro: '#0a0a0a', crema: '#f0ebe3' };
     const textColors = { claro: '#0a0a0a', oscuro: '#ffffff', crema: '#2a2a2a' };
-    const subColors = { claro: '#666', oscuro: 'rgba(255,255,255,0.5)', crema: '#666' };
+    const subColors = { claro: '#888', oscuro: 'rgba(255,255,255,0.5)', crema: '#888' };
     const bg = bgColors[fondo]; const tc = textColors[fondo]; const sc = subColors[fondo];
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Header area
-    ctx.fillStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)';
-    ctx.fillRect(0, 0, W, 110);
+    ctx.fillStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, 0, W, 90);
 
-    // Brand top
     ctx.fillStyle = tc;
-    ctx.font = '500 34px sans-serif';
+    ctx.font = '300 32px serif';
     ctx.textAlign = 'center';
-    ctx.fillText('ESHARA AROMAS', W/2, 68);
+    ctx.fillText('ESHARA  AROMAS', W/2, 56);
 
-    // "Perfume del día"
-    ctx.fillStyle = sc;
-    ctx.font = '400 30px sans-serif';
-    ctx.fillText(titulo, W/2, 160);
-
-    // Descuento grande en rojo negrita
     if (descuento) {
-      ctx.fillStyle = '#cc0000';
-      ctx.font = 'bold 90px sans-serif';
-      ctx.fillText(descuento, W/2, 265);
+      ctx.fillStyle = '#c00';
+      ctx.font = 'bold 72px sans-serif';
+      ctx.fillText(descuento, W/2, 175);
     }
-
-    // "en Decants" subtítulo
     ctx.fillStyle = tc;
-    ctx.font = 'bold 38px sans-serif';
-    ctx.fillText('en Decants', W/2, descuento ? 320 : 220);
+    ctx.font = `300 ${descuento ? '36' : '52'}px serif`;
+    ctx.fillText(titulo, W/2, descuento ? 225 : 175);
 
-    // Nombre perfume
-    ctx.fillStyle = tc;
-    ctx.font = '400 42px sans-serif';
-    ctx.fillText(`${p.brand} ${p.name}`, W/2, descuento ? 375 : 275);
-
-    // Product image — grande y centrada
-    const imgY = 400;
-    const imgSize = 520;
     if (p.img) {
       try {
-        // White card background for image
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = 'rgba(0,0,0,0.08)';
-        ctx.shadowBlur = 30;
-        ctx.fillRect((W - imgSize) / 2 - 20, imgY - 20, imgSize + 40, imgSize + 40);
-        ctx.shadowBlur = 0;
-
         const img = new Image();
         img.crossOrigin = 'anonymous';
         await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = p.img; });
-        ctx.drawImage(img, (W - imgSize) / 2, imgY, imgSize, imgSize);
+        const imgSize = 420;
+        ctx.drawImage(img, (W - imgSize) / 2, descuento ? 255 : 210, imgSize, imgSize);
       } catch(e) {}
     }
 
-    // Prices section
-    const priceY = imgY + imgSize + 80;
-
-    const drawPriceLine = (y, ml, oldPrice, newPrice) => {
-      ctx.textAlign = 'center';
-      const parts = [];
-
-      // ML bold
-      ctx.fillStyle = tc;
-      ctx.font = 'bold 44px sans-serif';
-      const mlText = `${ml}ml`;
-      const mlW = ctx.measureText(mlText).width;
-
-      let curX = W/2 - 280;
-
-      ctx.fillText(mlText, curX + mlW/2, y);
-      curX += mlW + 30;
-
-      if (oldPrice) {
-        // Old price tachado
-        ctx.fillStyle = sc;
-        ctx.font = '400 38px sans-serif';
-        const oldText = Number(oldPrice).toLocaleString('es-PY');
-        const oldW = ctx.measureText(oldText).width;
-        ctx.fillText(oldText, curX + oldW/2, y);
-        // Strikethrough line
-        ctx.beginPath();
-        ctx.strokeStyle = sc;
-        ctx.lineWidth = 3;
-        ctx.moveTo(curX, y - 12);
-        ctx.lineTo(curX + oldW, y - 12);
-        ctx.stroke();
-        curX += oldW + 30;
-      }
-
-      // New price bold
-      ctx.fillStyle = tc;
-      ctx.font = 'bold 44px sans-serif';
-      const newText = `${Number(newPrice).toLocaleString('es-PY')} Gs`;
-      ctx.fillText(newText, curX + ctx.measureText(newText).width/2, y);
-    };
-
-    drawPriceLine(priceY, 5, old5, precio5);
-    drawPriceLine(priceY + 65, 10, old10, precio10);
-
-    // Fecha
-    if (fecha) {
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#cc0000';
-      ctx.font = 'bold 38px sans-serif';
-      // "Solo hoy" red + date black
-      const soloHoy = 'Solo hoy ';
-      const soloW = ctx.measureText(soloHoy).width;
-      ctx.fillText(soloHoy + fecha, W/2, priceY + 145);
-    }
-
-    // Bottom divider + footer
-    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(80, H - 90); ctx.lineTo(W - 80, H - 90); ctx.stroke();
+    const bottomStart = 700;
 
     ctx.fillStyle = sc;
-    ctx.font = '400 26px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(pie.toUpperCase(), W/2, H - 45);
+    ctx.font = '400 28px sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(p.brand.toUpperCase(), W/2, bottomStart);
+
+    ctx.fillStyle = tc;
+    ctx.font = '300 52px serif';
+    ctx.letterSpacing = '2px';
+    ctx.fillText(p.name, W/2, bottomStart + 65);
+
+    // Prices
+    const drawPriceLine = (y, ml, oldPrice, newPrice) => {
+      ctx.textAlign = 'left';
+      const startX = W/2 - 220;
+      ctx.fillStyle = sc;
+      ctx.font = '400 28px sans-serif';
+      ctx.letterSpacing = '0px';
+      ctx.fillText(`${ml}ml`, startX, y);
+      if (oldPrice) {
+        ctx.fillStyle = sc;
+        ctx.font = '300 26px sans-serif';
+        const oldText = `Gs. ${Number(oldPrice).toLocaleString('es-PY')}`;
+        ctx.fillText(oldText, startX + 90, y);
+        const tw = ctx.measureText(oldText).width;
+        ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 2;
+        ctx.moveTo(startX + 90, y - 8); ctx.lineTo(startX + 90 + tw, y - 8); ctx.stroke();
+        ctx.fillStyle = sc; ctx.font = '300 24px sans-serif';
+        ctx.fillText('→', startX + 90 + tw + 12, y);
+        ctx.fillStyle = '#c00'; ctx.font = 'bold 32px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90 + tw + 48, y);
+      } else {
+        ctx.fillStyle = tc; ctx.font = '400 32px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90, y);
+      }
+      ctx.textAlign = 'center';
+    };
+
+    drawPriceLine(bottomStart + 145, 5, old5, precio5);
+    drawPriceLine(bottomStart + 195, 10, old10, precio10);
+
+    if (fecha) {
+      ctx.fillStyle = '#c00';
+      ctx.font = 'bold 30px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(fecha, W/2, bottomStart + 255);
+    }
+
+    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(100, H - 100); ctx.lineTo(W - 100, H - 100); ctx.stroke();
+
+    ctx.fillStyle = sc;
+    ctx.font = '300 24px sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(pie.toUpperCase(), W/2, H - 55);
 
     // Divider
     ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
