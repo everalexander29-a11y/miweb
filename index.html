@@ -283,6 +283,14 @@
   <div class="loading-text">Cargando...</div>
 </div>
 
+<!-- ANNOUNCEMENT BANNER -->
+<div id="announcement-bar" style="display:none; position:fixed; top:68px; left:0; right:0; z-index:99; background:#c00; color:#fff; overflow:hidden; height:38px;">
+  <div id="announcement-text" style="display:inline-block; white-space:nowrap; animation:marquee 18s linear infinite; padding-left:100%; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; letter-spacing:0.1em; line-height:38px;"></div>
+</div>
+<style>
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+</style>
+
 <nav>
   <a href="#" class="logo" onclick="secretTap()" id="logo-link">Eshara <em>Aromas</em></a>
   <ul>
@@ -479,7 +487,7 @@
     <div style="display:flex; align-items:center; padding:1.1rem 1.5rem; border-bottom:0.5px solid rgba(0,0,0,0.1); position:sticky; top:0; background:#fff; z-index:10;">
       <button onclick="closeDetail()" style="background:none; border:none; cursor:pointer; color:#777; font-family:'DM Sans',sans-serif; font-size:12px; padding:0; letter-spacing:0.1em; text-transform:uppercase;">← Volver</button>
       <span style="flex:1; text-align:center; font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase;">Detalle</span>
-      <button onclick="compartirProducto()" style="background:none;border:none;cursor:pointer;font-size:20px;padding:4px;" title="Compartir">📤</button>
+      <div style="width:60px;"></div>
     </div>
     <div id="detail-img-wrap" style="background:#ffffff; height:300px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
       <div style="position:absolute; font-family:'Cormorant Garamond',serif; font-size:120px; font-weight:300; color:rgba(0,0,0,0.04); letter-spacing:0.1em; user-select:none;">EA</div>
@@ -561,6 +569,17 @@
       <button class="admin-close" onclick="closeAdmin()">✕</button>
     </div>
     <div class="admin-body">
+      <div class="admin-section-title">Franja de anuncio</div>
+      <div class="admin-form" style="margin-bottom:1.5rem;">
+        <div class="admin-field">
+          <label>Mensaje del banner</label>
+          <input type="text" id="banner-text" placeholder="Ej: HOY 20% OFF — Afnan 9PM en Decants ‼️">
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+          <button onclick="activarBanner()" style="background:#c00;color:#fff;border:none;padding:12px;flex:1;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;">Activar banner</button>
+          <button onclick="desactivarBanner()" style="background:#f0f0f0;color:#555;border:none;padding:12px;flex:1;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;">Desactivar</button>
+        </div>
+      </div>
       <div class="admin-section-title">Agregar nuevo producto</div>
       <div class="admin-form">
         <div class="admin-field">
@@ -1376,21 +1395,60 @@
     }).join('');
   }
 
+  // ── BANNER ────────────────────────────────────────────────
+  window.activarBanner = async function() {
+    const text = document.getElementById('banner-text').value.trim();
+    if (!text) { alert('Escribí el mensaje del banner.'); return; }
+    const { setDoc, doc: d } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    try {
+      await setDoc(d(db, "config", "banner"), { text, active: true });
+      mostrarBanner(text);
+    } catch(e) { alert('Error al guardar banner.'); }
+  };
+
+  window.desactivarBanner = async function() {
+    const { setDoc, doc: d } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    try {
+      await setDoc(d(db, "config", "banner"), { text: '', active: false });
+      ocultarBanner();
+    } catch(e) { alert('Error.'); }
+  };
+
+  function mostrarBanner(text) {
+    const bar = document.getElementById('announcement-bar');
+    const textEl = document.getElementById('announcement-text');
+    textEl.textContent = text + ' ‼️  •  ' + text + ' ‼️  •  ' + text + ' ‼️';
+    bar.style.display = 'block';
+    document.querySelector('nav').style.top = '0';
+    document.querySelector('.hero').style.paddingTop = '168px';
+  }
+
+  function ocultarBanner() {
+    document.getElementById('announcement-bar').style.display = 'none';
+    document.querySelector('.hero').style.paddingTop = '';
+  }
+
+  async function loadBanner() {
+    const { getDoc, doc: d } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    try {
+      const snap = await getDoc(d(db, "config", "banner"));
+      if (snap.exists() && snap.data().active && snap.data().text) {
+        mostrarBanner(snap.data().text);
+        document.getElementById('banner-text').value = snap.data().text;
+      }
+    } catch(e) {}
+  }
+
   // ── COMPARTIR PRODUCTO ────────────────────────────────────
   window.compartirProducto = function() {
     const p = currentProduct;
     if (!p) return;
     const url = `${location.origin}${location.pathname}?producto=${p.firestoreId}`;
-    const precio5 = `Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
-    const precio10 = `Gs. ${Number(p.price10).toLocaleString('es-PY')}`;
-    const old5 = p.priceOld5 ? `antes Gs. ${Number(p.priceOld5).toLocaleString('es-PY')} → ` : '';
-    const msg = `${p.brand} - ${p.name}\n\n5ml: ${old5}${precio5}\n10ml: ${precio10}\n\nVer y pedir: ${url}`;
-
+    const msg = `${p.brand} - ${p.name}\n${url}`;
     if (navigator.share) {
       navigator.share({ title: `${p.brand} - ${p.name}`, text: msg, url }).catch(() => {});
     } else {
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
   };
 
@@ -1495,6 +1553,7 @@
 
   initRealtimeListener();
   loadReviews();
+  loadBanner();
   setStars(5);
 
   // Abrir producto desde URL
