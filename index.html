@@ -1465,10 +1465,11 @@
   window.compartirProducto = function() {
     const p = currentProduct;
     if (!p) return;
-    const url = `${location.origin}${location.pathname}?producto=${p.firestoreId}`;
+    const slug = (p.brand + '-' + p.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const url = `${location.origin}${location.pathname}?p=${slug}`;
     const msg = `${p.brand} - ${p.name}\n${url}`;
     if (navigator.share) {
-      navigator.share({ title: `${p.brand} - ${p.name}`, text: msg, url }).catch(() => {});
+      navigator.share({ title: `${p.brand} - ${p.name}`, text: msg }).catch(() => {});
     } else {
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -1581,12 +1582,21 @@
   // Abrir producto desde URL
   const urlParams = new URLSearchParams(location.search);
   const productoId = urlParams.get('producto');
-  if (productoId) {
+  const productoSlug = urlParams.get('p');
+  if (productoId || productoSlug) {
     const checkReady = setInterval(() => {
       if (products.length > 0) {
         clearInterval(checkReady);
-        const p = products.find(x => x.firestoreId === productoId);
-        if (p) openDetail(productoId);
+        let p;
+        if (productoId) {
+          p = products.find(x => x.firestoreId === productoId);
+        } else {
+          p = products.find(x => {
+            const slug = (x.brand + '-' + x.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            return slug === productoSlug;
+          });
+        }
+        if (p) openDetail(p.firestoreId);
       }
     }, 300);
   }
