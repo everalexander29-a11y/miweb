@@ -426,7 +426,7 @@
     <h2>Lo que dicen nuestros clientes</h2>
     <div class="divider"></div>
   </div>
-  <div id="reviews-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1120px;margin:0 auto 3rem;"></div>
+  <div id="reviews-grid" style="display:none;"></div>
   <div style="max-width:480px;margin:0 auto;">
     <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);margin-bottom:1.25rem;text-align:center;">Dejá tu reseña</div>
     <div style="display:flex;flex-direction:column;gap:0.75rem;">
@@ -1547,10 +1547,9 @@
 
   function renderProductReviews(p) {
     const list = document.getElementById('product-reviews-list');
-    const productKey = `${p.brand} ${p.name}`;
-    const reviews = allReviews.filter(r => r.approved && r.product && r.product.trim().toLowerCase() === productKey.trim().toLowerCase());
+    const reviews = allReviews.filter(r => r.approved);
     if (!reviews.length) {
-      list.innerHTML = '<p style="font-size:13px;color:#aaa;font-style:italic;">Todavía no hay opiniones de este perfume. ¡Sé el primero!</p>';
+      list.innerHTML = '<p style="font-size:13px;color:#aaa;font-style:italic;">Todavía no hay opiniones. ¡Sé el primero!</p>';
       return;
     }
     list.innerHTML = reviews.map(r => `
@@ -1561,6 +1560,7 @@
             <span style="font-size:13px;font-weight:500;color:#0a0a0a;">${r.name}</span>
             <span style="font-size:12px;color:#0a0a0a;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span>
           </div>
+          ${r.product ? `<div style="font-size:11px;color:#aaa;margin-bottom:3px;">${r.product}</div>` : ''}
           <div style="font-size:13px;color:#555;line-height:1.6;">${r.text}</div>
         </div>
       </div>`).join('');
