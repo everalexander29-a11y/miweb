@@ -479,7 +479,7 @@
   </div>
 </section>
 
-<footer><p>© 2026 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
+<footer><p>© 2025 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
 
 <!-- PRODUCT DETAIL -->
 <div id="product-detail" style="display:none; position:fixed; inset:0; background:#fff; z-index:200; overflow-y:auto;">
@@ -531,6 +531,32 @@
       <div id="similar-section" style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);">
         <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:1.25rem;">También te puede gustar</div>
         <div id="similar-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;"></div>
+      </div>
+
+      <!-- PRODUCT REVIEWS -->
+      <div style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#888;">Opiniones</div>
+          <button onclick="toggleReviewForm()" id="review-toggle-btn" style="background:transparent;border:0.5px solid rgba(0,0,0,0.2);color:#555;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">Dejar opinión</button>
+        </div>
+        <div id="product-reviews-list" style="display:flex;flex-direction:column;gap:1rem;margin-bottom:1rem;"></div>
+        <div id="product-review-form" style="display:none;background:#f8f8f8;padding:1.25rem;border:0.5px solid rgba(0,0,0,0.06);">
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <input type="text" id="prod-review-name" placeholder="Tu nombre" style="border:0.5px solid rgba(0,0,0,0.15);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:#fff;">
+            <textarea id="prod-review-text" placeholder="¿Qué te pareció este perfume?" rows="3" style="border:0.5px solid rgba(0,0,0,0.15);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:#fff;resize:none;"></textarea>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <span style="font-size:12px;color:#888;">Calificación:</span>
+              <div id="prod-star-selector" style="display:flex;gap:4px;">
+                <span class="prod-star-opt" data-val="1" onclick="setProdStars(1)" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>
+                <span class="prod-star-opt" data-val="2" onclick="setProdStars(2)" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>
+                <span class="prod-star-opt" data-val="3" onclick="setProdStars(3)" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>
+                <span class="prod-star-opt" data-val="4" onclick="setProdStars(4)" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>
+                <span class="prod-star-opt" data-val="5" onclick="setProdStars(5)" style="font-size:22px;cursor:pointer;opacity:0.3;">★</span>
+              </div>
+            </div>
+            <button onclick="submitProductReview()" style="background:#0a0a0a;color:#fff;border:none;padding:13px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Enviar opinión</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -850,6 +876,11 @@
     document.getElementById('detail-qty').textContent = '1';
     renderDetail();
     renderSimilar(currentProduct);
+    renderProductReviews(currentProduct);
+    document.getElementById('product-review-form').style.display = 'none';
+    document.getElementById('prod-review-name').value = '';
+    document.getElementById('prod-review-text').value = '';
+    setProdStars(5);
     document.getElementById('product-detail').style.display = 'block';
     document.body.style.overflow = 'hidden';
   };
@@ -1206,7 +1237,7 @@
 
     const canvas = document.getElementById('offer-canvas');
     const ctx = canvas.getContext('2d');
-    const W = 1080, H = 1080;
+    const W = 1080, H = 1920;
     canvas.width = W; canvas.height = H;
     canvas.style.display = 'block';
 
@@ -1219,100 +1250,100 @@
     ctx.fillRect(0, 0, W, H);
 
     ctx.fillStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-    ctx.fillRect(0, 0, W, 90);
+    ctx.fillRect(0, 0, W, 130);
 
     ctx.fillStyle = tc;
-    ctx.font = '300 32px serif';
+    ctx.font = '300 42px serif';
     ctx.textAlign = 'center';
-    ctx.fillText('ESHARA  AROMAS', W/2, 56);
+    ctx.fillText('ESHARA  AROMAS', W/2, 80);
+
+    let y = 250;
 
     if (descuento) {
       ctx.fillStyle = '#c00';
-      ctx.font = 'bold 72px sans-serif';
-      ctx.fillText(descuento, W/2, 175);
+      ctx.font = 'bold 110px sans-serif';
+      ctx.fillText(descuento, W/2, y);
+      y += 100;
     }
     ctx.fillStyle = tc;
-    ctx.font = `300 ${descuento ? '36' : '52'}px serif`;
-    ctx.fillText(titulo, W/2, descuento ? 225 : 175);
+    ctx.font = `300 ${descuento ? '54' : '78'}px serif`;
+    ctx.fillText(titulo, W/2, y);
+    y += 100;
 
     if (p.img) {
       try {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = p.img; });
-        const imgSize = 420;
-        ctx.drawImage(img, (W - imgSize) / 2, descuento ? 255 : 210, imgSize, imgSize);
-      } catch(e) {}
+        const imgSize = 760;
+        ctx.drawImage(img, (W - imgSize) / 2, y, imgSize, imgSize);
+        y += imgSize + 90;
+      } catch(e) { y += 90; }
+    } else {
+      y += 90;
     }
 
-    const bottomStart = 700;
-
     ctx.fillStyle = sc;
-    ctx.font = '400 28px sans-serif';
-    ctx.letterSpacing = '4px';
-    ctx.fillText(p.brand.toUpperCase(), W/2, bottomStart);
+    ctx.font = '400 42px sans-serif';
+    ctx.letterSpacing = '6px';
+    ctx.fillText(p.brand.toUpperCase(), W/2, y);
+    y += 95;
 
     ctx.fillStyle = tc;
-    ctx.font = '300 52px serif';
+    ctx.font = '300 78px serif';
     ctx.letterSpacing = '2px';
-    ctx.fillText(p.name, W/2, bottomStart + 65);
+    ctx.fillText(p.name, W/2, y);
+    y += 130;
 
     // Prices
-    const drawPriceLine = (y, ml, oldPrice, newPrice) => {
+    const drawPriceLine = (yPos, ml, oldPrice, newPrice) => {
       ctx.textAlign = 'left';
-      const startX = W/2 - 220;
+      const startX = W/2 - 330;
       ctx.fillStyle = sc;
-      ctx.font = '400 28px sans-serif';
+      ctx.font = '400 42px sans-serif';
       ctx.letterSpacing = '0px';
-      ctx.fillText(`${ml}ml`, startX, y);
+      ctx.fillText(`${ml}ml`, startX, yPos);
       if (oldPrice) {
         ctx.fillStyle = sc;
-        ctx.font = '300 26px sans-serif';
+        ctx.font = '300 40px sans-serif';
         const oldText = `Gs. ${Number(oldPrice).toLocaleString('es-PY')}`;
-        ctx.fillText(oldText, startX + 90, y);
+        ctx.fillText(oldText, startX + 135, yPos);
         const tw = ctx.measureText(oldText).width;
-        ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 2;
-        ctx.moveTo(startX + 90, y - 8); ctx.lineTo(startX + 90 + tw, y - 8); ctx.stroke();
-        ctx.fillStyle = sc; ctx.font = '300 24px sans-serif';
-        ctx.fillText('→', startX + 90 + tw + 12, y);
-        ctx.fillStyle = '#c00'; ctx.font = 'bold 32px sans-serif';
-        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90 + tw + 48, y);
+        ctx.beginPath(); ctx.strokeStyle = sc; ctx.lineWidth = 3;
+        ctx.moveTo(startX + 135, yPos - 12); ctx.lineTo(startX + 135 + tw, yPos - 12); ctx.stroke();
+        ctx.fillStyle = sc; ctx.font = '300 36px sans-serif';
+        ctx.fillText('→', startX + 135 + tw + 18, yPos);
+        ctx.fillStyle = '#c00'; ctx.font = 'bold 48px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 135 + tw + 72, yPos);
       } else {
-        ctx.fillStyle = tc; ctx.font = '400 32px sans-serif';
-        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 90, y);
+        ctx.fillStyle = tc; ctx.font = '400 48px sans-serif';
+        ctx.fillText(`Gs. ${Number(newPrice).toLocaleString('es-PY')}`, startX + 135, yPos);
       }
       ctx.textAlign = 'center';
     };
 
-    drawPriceLine(bottomStart + 145, 5, old5, precio5);
-    drawPriceLine(bottomStart + 195, 10, old10, precio10);
+    drawPriceLine(y, 5, old5, precio5);
+    y += 75;
+    drawPriceLine(y, 10, old10, precio10);
+    y += 75;
 
     if (fecha) {
       ctx.fillStyle = '#c00';
-      ctx.font = 'bold 30px sans-serif';
+      ctx.font = 'bold 46px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(fecha, W/2, bottomStart + 255);
+      ctx.fillText(fecha, W/2, y);
+      y += 60;
     }
 
-    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(100, H - 100); ctx.lineTo(W - 100, H - 100); ctx.stroke();
-
-    ctx.fillStyle = sc;
-    ctx.font = '300 24px sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText(pie.toUpperCase(), W/2, H - 55);
-
-    // Divider
-    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(100, H - 100); ctx.lineTo(W - 100, H - 100); ctx.stroke();
-
     // Footer
+    ctx.strokeStyle = fondo === 'oscuro' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(120, H - 130); ctx.lineTo(W - 120, H - 130); ctx.stroke();
+
     ctx.fillStyle = sc;
-    ctx.font = '300 24px sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText(pie.toUpperCase(), W/2, H - 55);
+    ctx.font = '300 36px sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(pie.toUpperCase(), W/2, H - 70);
 
     document.getElementById('share-actions').style.display = 'flex';
     document.getElementById('share-close-only').style.display = 'none';
@@ -1490,8 +1521,70 @@
     document.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('selected'));
   };
 
-  // ── REVIEWS ──────────────────────────────────────────────
-  let selectedStars = 5;
+  // ── PRODUCT REVIEWS (YouTube-style, per product) ──────────
+  let allReviews = [];
+  let prodSelectedStars = 5;
+
+  window.setProdStars = function(val) {
+    prodSelectedStars = val;
+    document.querySelectorAll('.prod-star-opt').forEach((s, i) => {
+      s.style.opacity = i < val ? '1' : '0.3';
+    });
+  };
+
+  window.toggleReviewForm = function() {
+    const form = document.getElementById('product-review-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  };
+
+  async function loadAllReviews() {
+    const { collection: col, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    try {
+      const snap = await getDocs(col(db, "resenas"));
+      allReviews = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) { console.log('Error cargando reseñas:', e); }
+  }
+
+  function renderProductReviews(p) {
+    const list = document.getElementById('product-reviews-list');
+    const productKey = `${p.brand} ${p.name}`;
+    const reviews = allReviews.filter(r => r.approved && r.product && r.product.trim().toLowerCase() === productKey.trim().toLowerCase());
+    if (!reviews.length) {
+      list.innerHTML = '<p style="font-size:13px;color:#aaa;font-style:italic;">Todavía no hay opiniones de este perfume. ¡Sé el primero!</p>';
+      return;
+    }
+    list.innerHTML = reviews.map(r => `
+      <div style="display:flex;gap:0.85rem;">
+        <div style="width:38px;height:38px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;flex-shrink:0;">${r.name.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:2px;">
+            <span style="font-size:13px;font-weight:500;color:#0a0a0a;">${r.name}</span>
+            <span style="font-size:12px;color:#0a0a0a;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span>
+          </div>
+          <div style="font-size:13px;color:#555;line-height:1.6;">${r.text}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  window.submitProductReview = async function() {
+    const p = currentProduct;
+    if (!p) return;
+    const name = sanitize(document.getElementById('prod-review-name').value);
+    const text = sanitize(document.getElementById('prod-review-text').value);
+    if (!name || !text) { alert('Completa tu nombre y comentario.'); return; }
+    const { addDoc: ad, collection: col } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    showLoading('Enviando opinión...');
+    try {
+      await ad(col(db, "resenas"), { name, product: `${p.brand} ${p.name}`, text, stars: prodSelectedStars, approved: false, createdAt: Date.now() });
+      document.getElementById('prod-review-name').value = '';
+      document.getElementById('prod-review-text').value = '';
+      document.getElementById('product-review-form').style.display = 'none';
+      alert('Gracias por tu opinion! Sera publicada pronto.');
+      await loadAllReviews();
+      renderProductReviews(p);
+    } catch(e) { alert('Error al enviar.'); }
+    hideLoading();
+  };
 
   window.setStars = function(val) {
     selectedStars = val;
@@ -1543,6 +1636,7 @@
 
   initRealtimeListener();
   loadReviews();
+  loadAllReviews();
   loadBanner();
   setStars(5);
 
