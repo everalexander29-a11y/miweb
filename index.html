@@ -106,10 +106,10 @@
   .edit-save-btn { background:#0a0a0a; color:#fff; border:none; padding:14px; width:100%; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; margin-top:1rem; }
 
   /* SHARE MODAL */
-  .share-overlay { display:none; position:fixed; inset:0; z-index:500; align-items:center; justify-content:center; }
+  .share-overlay { display:none; position:fixed; inset:0; z-index:500; align-items:flex-start; justify-content:center; overflow-y:auto; padding:20px 0; }
   .share-overlay.open { display:flex; }
   .share-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.7); }
-  .share-modal { position:relative; background:#fff; width:min(420px,95vw); padding:2rem; z-index:1; }
+  .share-modal { position:relative; background:#fff; width:min(420px,95vw); max-height:90vh; overflow-y:auto; padding:2rem; z-index:1; }
   .share-modal h3 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:1.5rem; }
   .share-preview { background:#f4f4f4; border:0.5px solid rgba(0,0,0,0.1); padding:1.25rem; margin-bottom:1.25rem; font-size:14px; line-height:1.8; color:#333; white-space:pre-wrap; font-family:'DM Sans',sans-serif; }
   .share-wa-btn { background:#25D366; color:#fff; border:none; padding:14px; width:100%; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; margin-bottom:0.75rem; }
