@@ -79,11 +79,11 @@
   .feature-item p { font-size: 15px; color: var(--mid); line-height: 1.75; }
 
   /* CATALOGUE */
-  .catalogue { background: #f4f4f4; padding-left: 0 !important; padding-right: 0 !important; }
-  .catalogue-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; max-width: 100%; margin: 0; padding: 0; }
+  .catalogue { background: #f4f4f4; padding-left: 0 !important; padding-right: 0 !important; padding-top: 60px !important; }
+  .catalogue-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; width: 100%; margin: 0; padding: 0 0.4rem; }
   .product-card { background: var(--white); border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; transition: opacity 0.2s; cursor: pointer; position: relative; padding: 0; }
   .product-card:hover { opacity: 0.85; }
-  .product-img { height: auto; aspect-ratio: 1/1; background: #f5f5f5; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .product-img { width: 100%; aspect-ratio: 1/1; background: #f5f5f5; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
   .product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
   .product-img-placeholder { width: 60px; height: 100px; background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(150,150,150,0.3)); border: 1px solid rgba(0,0,0,0.2); border-radius: 4px 4px 12px 12px; position: relative; }
   .product-img-placeholder::before { content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 28px; height: 16px; background: var(--charcoal); border-radius: 2px 2px 0 0; }
@@ -125,7 +125,7 @@
   .review-text { font-size:15px; color:var(--mid); line-height:1.7; margin-bottom:1rem; font-style:italic; }
   .review-author { font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--light); }
   .review-product-name { font-size:12px; color:var(--light); margin-top:2px; }
-  .product-info { padding: 0.6rem 0.75rem 0.75rem; }
+  .product-info { padding: 0.6rem 0.7rem 0.8rem; }
   .product-brand { font-size: 12px; letter-spacing: 0; text-transform: none; color: #888; margin-bottom: 0.1rem; font-family: "DM Sans", sans-serif; font-weight: 400; }
   .product-name { font-family: "Cormorant Garamond", serif; font-size: 14px; font-weight: 400; color: var(--charcoal); margin-bottom: 0.2rem; line-height: 1.25; text-transform: none; letter-spacing: 0; }
   .product-notes { display: none; }
@@ -553,9 +553,9 @@
       </div>
 
       <!-- SIMILAR PRODUCTS -->
-      <div id="similar-section" style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);">
+      <div id="similar-section" style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);padding-left:0;padding-right:0;">
         <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:1.25rem;">También te puede gustar</div>
-        <div id="similar-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;"></div>
+        <div id="similar-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;width:100%;"></div>
       </div>
 
       <!-- PRODUCT REVIEWS -->
@@ -1426,15 +1426,15 @@
       const isAgotado = s.agotado === true;
       const badgeHTML = isAgotado ? `<span class="badge badge-agotado" style="position:absolute;top:10px;left:10px;">Agotado</span>` : s.badge ? `<span class="badge badge-${s.badge}" style="position:absolute;top:10px;left:10px;">${s.badge==='new'?'Nuevo':s.badge==='hot'?'Mas pedido':'Oferta'}</span>` : '';
       return `
-      <div onclick="openDetail('${s.firestoreId}')" style="background:#fff;border:0.5px solid rgba(0,0,0,0.1);overflow:hidden;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="height:160px;background:#fafafa;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+      <div onclick="openDetail('${s.firestoreId}')" style="background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;overflow:hidden;cursor:pointer;transition:opacity 0.2s;position:relative;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        <div style="aspect-ratio:1/1;background:#f5f5f5;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
           ${badgeHTML}
-          ${s.img ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:40px;height:70px;background:linear-gradient(145deg,rgba(255,255,255,0.9),rgba(150,150,150,0.3));border:1px solid rgba(0,0,0,0.2);border-radius:3px 3px 8px 8px;"></div>'}
+          ${s.img ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:contain;padding:10px;">` : '<div style="width:40px;height:70px;background:linear-gradient(145deg,rgba(255,255,255,0.9),rgba(150,150,150,0.3));border:1px solid rgba(0,0,0,0.2);border-radius:3px 3px 8px 8px;"></div>'}
         </div>
-        <div style="padding:0.9rem;">
-          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:2px;">${s.brand}</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:#0a0a0a;line-height:1.2;margin-bottom:4px;">${s.name}</div>
-          ${s.priceOld5 ? `<div style="font-size:11px;color:#aaa;text-decoration:line-through;">Gs. ${Number(s.priceOld5).toLocaleString('es-PY')}</div><div style="font-size:13px;font-weight:500;color:#c00;">Gs. ${Number(s.price5).toLocaleString('es-PY')}<span style="font-size:11px;color:#aaa;font-weight:400;"> /5ml</span></div>` : `<div style="font-size:13px;color:#555;">Gs. ${Number(s.price5).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;">/5ml</span></div>`}
+        <div style="padding:0.6rem 0.75rem 0.75rem;">
+          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin-bottom:2px;">${s.brand}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;color:#0a0a0a;line-height:1.2;margin-bottom:4px;">${s.name}</div>
+          ${s.priceOld5 ? `<div style="font-size:11px;color:#aaa;text-decoration:line-through;">Gs. ${Number(s.priceOld5).toLocaleString('es-PY')}</div><div style="font-size:15px;font-weight:500;color:#0a0a0a;">Gs. ${Number(s.price5).toLocaleString('es-PY')}<span style="font-size:11px;color:#aaa;font-weight:400;"> /5ml</span></div>` : `<div style="font-size:15px;font-weight:500;color:#0a0a0a;">Gs. ${Number(s.price5).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;font-weight:400;">/5ml</span></div>`}
         </div>
       </div>`;
     }).join('');
