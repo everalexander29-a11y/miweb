@@ -266,6 +266,20 @@
   @keyframes spin { to { transform:rotate(360deg); } }
   .loading-text { font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:#555; }
 
+  /* CROPPER MODAL */
+  .cropper-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:500; align-items:center; justify-content:center; flex-direction:column; padding:1rem; }
+  .cropper-modal-overlay.open { display:flex; }
+  .cropper-box { background:#111; border-radius:8px; overflow:hidden; width:100%; max-width:400px; }
+  .cropper-header { padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid rgba(255,255,255,0.1); }
+  .cropper-header span { font-size:13px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); font-family:"DM Sans",sans-serif; }
+  .cropper-canvas-wrap { position:relative; width:100%; background:#000; overflow:hidden; touch-action:none; }
+  .cropper-canvas-wrap canvas { display:block; width:100%; }
+  .cropper-overlay-frame { position:absolute; inset:0; pointer-events:none; }
+  .cropper-actions { display:flex; gap:0.5rem; padding:1rem; }
+  .cropper-btn { flex:1; padding:13px; font-family:"DM Sans",sans-serif; font-size:12px; letter-spacing:0.15em; text-transform:uppercase; border:none; cursor:pointer; border-radius:4px; }
+  .cropper-btn-cancel { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); }
+  .cropper-btn-crop { background:#fff; color:#0a0a0a; font-weight:500; }
+
   @media (max-width: 768px) {
     nav ul { display: none; }
     section { padding: 80px 1.25rem; }
@@ -608,6 +622,31 @@
   </div>
 </div>
 
+<!-- CROPPER MODAL -->
+<div class="cropper-modal-overlay" id="cropper-modal">
+  <div class="cropper-box">
+    <div class="cropper-header">
+      <span>Recortar imagen (1:1)</span>
+      <button onclick="cancelCrop()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div class="cropper-canvas-wrap" id="cropper-wrap">
+      <canvas id="cropper-canvas"></canvas>
+      <svg class="cropper-overlay-frame" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="100" height="100" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.6)" stroke-width="0.5" vector-effect="non-scaling-stroke"/>
+        <line x1="33" y1="0" x2="33" y2="100" stroke="rgba(255,255,255,0.25)" stroke-width="0.3" vector-effect="non-scaling-stroke"/>
+        <line x1="66" y1="0" x2="66" y2="100" stroke="rgba(255,255,255,0.25)" stroke-width="0.3" vector-effect="non-scaling-stroke"/>
+        <line x1="0" y1="33" x2="100" y2="33" stroke="rgba(255,255,255,0.25)" stroke-width="0.3" vector-effect="non-scaling-stroke"/>
+        <line x1="0" y1="66" x2="100" y2="66" stroke="rgba(255,255,255,0.25)" stroke-width="0.3" vector-effect="non-scaling-stroke"/>
+      </svg>
+    </div>
+    <div style="padding:0.5rem 1rem;font-size:12px;color:rgba(255,255,255,0.35);font-family:'DM Sans',sans-serif;text-align:center;">Pellizca para hacer zoom · Arrastrá para mover</div>
+    <div class="cropper-actions">
+      <button class="cropper-btn cropper-btn-cancel" onclick="cancelCrop()">Cancelar</button>
+      <button class="cropper-btn cropper-btn-crop" onclick="applyCrop()">✓ Recortar y subir</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN PANEL -->
 <div class="admin-overlay" id="admin-overlay">
   <div class="admin-backdrop" onclick="closeAdmin()"></div>
@@ -724,6 +763,20 @@
         <div class="admin-field"><label>Precio anterior 5ml (opcional)</label><input type="number" id="edit-priceOld5" placeholder="Para mostrar tachado"></div>
         <div class="admin-field"><label>Precio anterior 10ml (opcional)</label><input type="number" id="edit-priceOld10" placeholder="Para mostrar tachado"></div>
       </div>
+      <!-- IMAGEN -->
+      <div class="admin-field">
+        <label>Imagen del producto</label>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+          <img id="edit-img-preview" src="" style="width:80px;height:80px;object-fit:cover;border:0.5px solid rgba(0,0,0,0.1);border-radius:4px;display:none;">
+          <div style="flex:1;">
+            <div style="border:1px dashed rgba(0,0,0,0.2);padding:1rem;text-align:center;cursor:pointer;background:#fafafa;position:relative;border-radius:2px;" onclick="document.getElementById('edit-img-input').click()">
+              <input type="file" accept="image/*" id="edit-img-input" style="display:none;" onchange="editPreviewImage(event)">
+              <div id="edit-img-status" style="font-size:12px;color:#888;letter-spacing:0.08em;">📷 Cambiar imagen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button class="edit-save-btn" onclick="saveEdit()">Guardar cambios</button>
       <button onclick="closeEditModal()" style="background:transparent;border:0.5px solid rgba(0,0,0,0.2);padding:12px;width:100%;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-top:0.5rem;">Cancelar</button>
     </div>
@@ -1059,34 +1112,181 @@
 
   window.closeAdmin = function() { document.getElementById('admin-overlay').classList.remove('open'); };
 
-  window.previewImage = async function(e) {
+  // ── CROPPER ───────────────────────────────────────────────
+  let cropImage = null;
+  let cropScale = 1;
+  let cropOffsetX = 0;
+  let cropOffsetY = 0;
+  let cropStartX = 0;
+  let cropStartY = 0;
+  let cropIsDragging = false;
+  let cropLastDist = 0;
+  let cropPendingFile = null;
+  let editPendingImg = '';
+  let editCropMode = false;
+
+  window.previewImage = function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const uploadText = document.querySelector('#upload-area .img-upload-text');
-    const uploadIcon = document.querySelector('#upload-area .img-upload-icon');
-    uploadText.textContent = 'Subiendo imagen...';
-    uploadIcon.style.display = 'none';
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.secure_url) {
-        pendingImg = data.secure_url;
-        const preview = document.getElementById('img-preview');
-        preview.src = pendingImg;
-        preview.style.display = 'block';
-        uploadText.textContent = 'Imagen lista';
-      } else {
-        uploadText.textContent = 'Error al subir. Intenta de nuevo.';
-        uploadIcon.style.display = 'block';
-      }
-    } catch(err) {
-      uploadText.textContent = 'Error de conexion.';
-      uploadIcon.style.display = 'block';
-    }
+    cropPendingFile = file;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        cropImage = img;
+        cropScale = 1;
+        cropOffsetX = 0;
+        cropOffsetY = 0;
+        initCropper();
+        document.getElementById('cropper-modal').classList.add('open');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
   };
+
+  function initCropper() {
+    const wrap = document.getElementById('cropper-wrap');
+    const canvas = document.getElementById('cropper-canvas');
+    const size = wrap.clientWidth || 360;
+    canvas.width = size;
+    canvas.height = size;
+    fitCropImage();
+    drawCropper();
+  }
+
+  function fitCropImage() {
+    if (!cropImage) return;
+    const canvas = document.getElementById('cropper-canvas');
+    const size = canvas.width;
+    const scale = Math.max(size / cropImage.width, size / cropImage.height);
+    cropScale = scale;
+    cropOffsetX = (size - cropImage.width * scale) / 2;
+    cropOffsetY = (size - cropImage.height * scale) / 2;
+  }
+
+  function drawCropper() {
+    const canvas = document.getElementById('cropper-canvas');
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(cropImage, cropOffsetX, cropOffsetY, cropImage.width * cropScale, cropImage.height * cropScale);
+  }
+
+  // Touch & mouse events
+  const cc = document.getElementById('cropper-canvas');
+  if (cc) {
+    cc.addEventListener('mousedown', e => { cropIsDragging = true; cropStartX = e.clientX - cropOffsetX; cropStartY = e.clientY - cropOffsetY; });
+    cc.addEventListener('mousemove', e => { if (!cropIsDragging) return; cropOffsetX = e.clientX - cropStartX; cropOffsetY = e.clientY - cropStartY; drawCropper(); });
+    cc.addEventListener('mouseup', () => cropIsDragging = false);
+    cc.addEventListener('touchstart', e => { if (e.touches.length === 1) { cropIsDragging = true; cropStartX = e.touches[0].clientX - cropOffsetX; cropStartY = e.touches[0].clientY - cropOffsetY; } else if (e.touches.length === 2) { cropLastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } }, {passive:true});
+    cc.addEventListener('touchmove', e => {
+      if (e.touches.length === 1 && cropIsDragging) { cropOffsetX = e.touches[0].clientX - cropStartX; cropOffsetY = e.touches[0].clientY - cropStartY; drawCropper(); }
+      else if (e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const delta = dist / cropLastDist;
+        cropScale *= delta; cropLastDist = dist;
+        const canvas = document.getElementById('cropper-canvas');
+        const cx = canvas.width / 2; const cy = canvas.height / 2;
+        cropOffsetX = cx - (cx - cropOffsetX) * delta;
+        cropOffsetY = cy - (cy - cropOffsetY) * delta;
+        drawCropper();
+      }
+    }, {passive:true});
+    cc.addEventListener('touchend', () => cropIsDragging = false);
+    cc.addEventListener('wheel', e => {
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const canvas = document.getElementById('cropper-canvas');
+      const cx = canvas.width/2; const cy = canvas.height/2;
+      cropScale *= delta;
+      cropOffsetX = cx - (cx - cropOffsetX) * delta;
+      cropOffsetY = cy - (cy - cropOffsetY) * delta;
+      drawCropper(); e.preventDefault();
+    }, {passive:false});
+  }
+
+  function cancelCrop() {
+    document.getElementById('cropper-modal').classList.remove('open');
+    document.getElementById('img-input').value = '';
+    cropImage = null; cropPendingFile = null;
+  }
+
+  // Edit image preview - opens cropper
+  window.editPreviewImage = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    editCropMode = true;
+    cropPendingFile = file;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        cropImage = img;
+        cropScale = 1;
+        cropOffsetX = 0;
+        cropOffsetY = 0;
+        initCropper();
+        document.getElementById('cropper-modal').classList.add('open');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  async function applyCrop() {
+    const canvas = document.getElementById('cropper-canvas');
+    canvas.toBlob(async function(blob) {
+      document.getElementById('cropper-modal').classList.remove('open');
+      const formData = new FormData();
+      formData.append('file', blob, 'crop.jpg');
+      formData.append('upload_preset', UPLOAD_PRESET);
+
+      if (editCropMode) {
+        // Edit mode - update existing product image
+        const statusEl = document.getElementById('edit-img-status');
+        statusEl.textContent = 'Subiendo...';
+        try {
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.secure_url) {
+            editPendingImg = data.secure_url;
+            const preview = document.getElementById('edit-img-preview');
+            preview.src = editPendingImg;
+            preview.style.display = 'block';
+            statusEl.textContent = '✓ Lista — guardá los cambios';
+          } else {
+            statusEl.textContent = 'Error. Intentá de nuevo.';
+          }
+        } catch(err) {
+          document.getElementById('edit-img-status').textContent = 'Error de conexión.';
+        }
+        editCropMode = false;
+      } else {
+        // New product mode
+        const uploadText = document.querySelector('#upload-area .img-upload-text');
+        const uploadIcon = document.querySelector('#upload-area .img-upload-icon');
+        uploadText.textContent = 'Subiendo imagen...';
+        uploadIcon.style.display = 'none';
+        try {
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.secure_url) {
+            pendingImg = data.secure_url;
+            const preview = document.getElementById('img-preview');
+            preview.src = pendingImg;
+            preview.style.display = 'block';
+            uploadText.textContent = '✓ Imagen lista';
+          } else {
+            uploadText.textContent = 'Error al subir. Intentá de nuevo.';
+            uploadIcon.style.display = 'block';
+          }
+        } catch(err) {
+          uploadText.textContent = 'Error de conexión.';
+          uploadIcon.style.display = 'block';
+        }
+      }
+    }, 'image/jpeg', 0.92);
+  }
 
   window.addProduct = async function() {
     if (!checkRateLimit()) { alert('Demasiados intentos. Espera un momento.'); return; }
@@ -1159,6 +1359,13 @@
   window.openEditModal = function(firestoreId) {
     const p = products.find(x => x.firestoreId === firestoreId);
     if (!p) return;
+    editPendingImg = '';
+    editCropMode = false;
+    document.getElementById('edit-img-input').value = '';
+    document.getElementById('edit-img-status').textContent = '📷 Cambiar imagen';
+    const editPreview = document.getElementById('edit-img-preview');
+    if (p.img) { editPreview.src = p.img; editPreview.style.display = 'block'; }
+    else { editPreview.style.display = 'none'; }
     document.getElementById('edit-id').value = firestoreId;
     document.getElementById('edit-brand').value = p.brand;
     document.getElementById('edit-name').value = p.name;
@@ -1192,6 +1399,7 @@
       const updates = { brand, name, notes, price5, price10, category };
       if (priceOld5) updates.priceOld5 = priceOld5; else updates.priceOld5 = null;
       if (priceOld10) updates.priceOld10 = priceOld10; else updates.priceOld10 = null;
+      if (editPendingImg) updates.img = editPendingImg;
       await updateDoc(doc(db, "productos", firestoreId), updates);
       closeEditModal();
     } catch(err) { alert('Error al guardar.'); }
