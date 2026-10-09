@@ -1559,13 +1559,9 @@
   @media (prefers-reduced-motion: reduce) {
     .product-card { animation: none; }
     .js-reveal .reveal { opacity: 1; transform: none; transition: none; }
-    .wa-float { animation: none !important; }
-  }
-
-  .wa-float { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(0,0,0,0.3); transition: transform 0.2s; animation: waPulse 2.8s ease-out infinite; }
-  .wa-float:hover { transform: scale(1.08); }
-  .wa-float svg { width: 30px; height: 30px; fill: #fff; }
-  @keyframes waPulse { 0% { box-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 0 0 rgba(37,211,102,0.5); } 70% { box-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 0 16px rgba(37,211,102,0); } 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 0 0 rgba(37,211,102,0); } }
+    .wa-float { position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 150; width: 44px; height: 44px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.25); transition: transform 0.2s; }
+  .wa-float:hover { transform: scale(1.1); }
+  .wa-float svg { width: 24px; height: 24px; fill: #fff; }
 </style></head><body><div class="tip"><strong>iPhone:</strong> Mantené presionada la imagen → "Añadir a fotos" → luego compartila por WhatsApp desde tu galería.</div><img src="${dataUrl}" alt="oferta"><div class="tip"><strong>Android:</strong> Mantené presionada la imagen → "Guardar imagen" → compartila por WhatsApp.</div></body></html>`);
     win.document.close();
   };
