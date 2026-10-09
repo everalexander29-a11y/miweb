@@ -1014,13 +1014,40 @@
   }
   function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
 
-  function initRealtimeListener() {
+  // Guarda los productos en el celular del cliente unos minutos para gastar menos lecturas de Firebase
+  const CACHE_KEY = 'ea_productos_v1';
+  const CACHE_TTL = 10 * 60 * 1000;
+  let listenerStarted = false;
+
+  function readProductsCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const c = JSON.parse(raw);
+      if (!c || !Array.isArray(c.data) || !c.data.length || Date.now() - c.t > CACHE_TTL) return null;
+      return c.data;
+    } catch (e) { return null; }
+  }
+  function saveProductsCache(list) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data: list })); } catch (e) {}
+  }
+
+  function startListener() {
+    if (listenerStarted) return;
+    listenerStarted = true;
     const q = query(collection(db, "productos"), orderBy("createdAt", "asc"));
     onSnapshot(q, (snapshot) => {
       products = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+      saveProductsCache(products);
       renderCatalogue();
       if (adminMode) renderAdminList();
     });
+  }
+
+  function initRealtimeListener() {
+    const cached = readProductsCache();
+    if (cached) { products = cached; renderCatalogue(); return; }
+    startListener();
   }
 
   function renderCatalogue() {
@@ -1235,6 +1262,7 @@
       return;
     }
     adminMode = true;
+    startListener();
     document.body.classList.add('admin-mode');
     document.getElementById('admin-overlay').classList.add('open');
     renderAdminList();
