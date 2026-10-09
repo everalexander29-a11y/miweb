@@ -964,7 +964,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCTiZAtojbN6yjTKIOe86MXBK-AzGb55yk",
@@ -1014,12 +1014,13 @@
   }
   function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
 
-  // Los productos se guardan en el celular del cliente. Al volver a entrar solo se piden los productos
-  // que cambiaron desde la última vez (si no hubo cambios, es 1 sola lectura).
-  const CACHE_KEY = 'ea_productos_v3';
-  const CACHE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;  // cada 30 días se vuelve a descargar todo por seguridad
+  // El catálogo completo se guarda en UN solo documento (config/catalogo): cada visita nueva gasta
+  // 1 lectura sin importar cuántos productos haya. Además se guarda en el celular unos minutos.
+  const CACHE_KEY = 'ea_productos_v4';
+  const CACHE_TTL = 10 * 60 * 1000;
   let listenerStarted = false;
   let maxStamp = 0;
+  let publishTimer = null;
 
   function stampOf(d) { return d.updatedAt || d.createdAt || 0; }
   function nextStamp() { return Math.max(Date.now(), maxStamp + 1); }
@@ -1030,38 +1031,45 @@
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       const c = JSON.parse(raw);
-      if (!c || !Array.isArray(c.data) || !c.data.length || !c.fullAt || !c.lastSync) return null;
+      if (!c || !Array.isArray(c.data) || !c.data.length || !c.t) return null;
       return c;
     } catch (e) { return null; }
   }
-  function saveProductsCache(list, lastSync, fullAt) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ fullAt, lastSync, data: list })); } catch (e) {}
+  function saveProductsCache(list) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data: list })); } catch (e) {}
   }
 
-  // Descarga completa (primera visita, o cada 30 días)
+  // Visitantes: lee el catálogo completo en 1 sola lectura
+  async function loadCatalog() {
+    const snap = await getDoc(doc(db, 'config', 'catalogo'));
+    const items = snap.exists() ? snap.data().items : null;
+    if (!Array.isArray(items) || !items.length) throw new Error('sin catalogo');
+    items.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
+    products = sortProducts(items.slice());
+    saveProductsCache(products);
+    renderCatalogue();
+  }
+
+  // Respaldo (solo si todavía no existe el catálogo en un documento): lee toda la colección
   async function loadAllProducts() {
     const snap = await getDocs(query(collection(db, "productos"), orderBy("createdAt", "asc")));
     const raw = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
     raw.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
     products = raw.filter(d => !d.deleted);
-    saveProductsCache(products, maxStamp, Date.now());
+    saveProductsCache(products);
     renderCatalogue();
   }
 
-  // Solo los productos nuevos, editados o eliminados desde la última vez
-  async function syncChanges(cache) {
-    const snap = await getDocs(query(collection(db, "productos"), where("updatedAt", ">", cache.lastSync), orderBy("updatedAt", "asc")));
-    let lastSync = cache.lastSync;
-    const map = new Map(cache.data.map(p => [p.firestoreId, p]));
-    snap.docs.forEach(d => {
-      const v = { firestoreId: d.id, ...d.data() };
-      lastSync = Math.max(lastSync, v.updatedAt || 0);
-      if (v.deleted) map.delete(d.id); else map.set(d.id, v);
-    });
-    maxStamp = Math.max(maxStamp, lastSync);
-    products = sortProducts(Array.from(map.values()));
-    saveProductsCache(products, lastSync, cache.fullAt);
-    if (snap.size) renderCatalogue();
+  // Administrador: después de cada cambio, actualiza el documento único que leen los clientes
+  function publishCatalog() {
+    clearTimeout(publishTimer);
+    publishTimer = setTimeout(async () => {
+      try {
+        const items = JSON.parse(JSON.stringify(products));
+        if (JSON.stringify(items).length > 900000) { alert('El catálogo es demasiado grande para publicarlo. Avisame para ajustarlo.'); return; }
+        await setDoc(doc(db, 'config', 'catalogo'), { items, n: items.length, updatedAt: Date.now() });
+      } catch (e) { alert('No se pudo actualizar el catálogo para los clientes. Revisá tu conexión y volvé a guardar el cambio.'); }
+    }, 1500);
   }
 
   // Modo administrador: tiempo real y completo
@@ -1073,23 +1081,23 @@
       const raw = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
       raw.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
       products = raw.filter(d => !d.deleted);
-      saveProductsCache(products, maxStamp, Date.now());
+      saveProductsCache(products);
       renderCatalogue();
-      if (adminMode) renderAdminList();
+      if (adminMode) { renderAdminList(); publishCatalog(); }
     });
   }
 
   async function initRealtimeListener() {
     const cache = readProductsCache();
-    if (cache && Date.now() - cache.fullAt < CACHE_MAX_AGE) {
+    if (cache) {
       products = cache.data;
-      maxStamp = cache.lastSync;
       renderCatalogue();
-      try { await syncChanges(cache); } catch (e) { /* se queda con lo guardado */ }
-      return;
+      if (Date.now() - cache.t < CACHE_TTL) return;
     }
-    try { await loadAllProducts(); }
-    catch (e) { if (cache) { products = cache.data; renderCatalogue(); } }
+    try { await loadCatalog(); }
+    catch (e) {
+      try { await loadAllProducts(); } catch (e2) { /* se queda con lo que haya */ }
+    }
   }
 
   function renderCatalogue() {
