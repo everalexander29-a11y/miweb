@@ -498,6 +498,7 @@
     <button class="filter-btn" data-filter="masculino">Masculinos</button>
     <button class="filter-btn" data-filter="femenino">Femeninos</button>
     <button class="filter-btn" data-filter="unisex">Unisex</button>
+    <button class="filter-btn" data-filter="completos">Perfumes completos</button>
   </div>
   <div class="catalogue-grid" id="catalogue-grid">
     <p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">Cargando productos...</p>
@@ -645,7 +646,7 @@
 
       <div style="margin-bottom:1.5rem;">
         <div style="font-size:11px; font-weight:500; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:1rem;">Tamaño</div>
-        <div style="display:flex; gap:0.75rem;">
+        <div id="detail-size-btns" style="display:flex; gap:0.75rem;">
           <button class="size-btn active" onclick="selectSize(this,5)">5 ml</button>
           <button class="size-btn" onclick="selectSize(this,10)">10 ml</button>
         </div>
@@ -797,7 +798,15 @@
           <label>Notas olfativas</label>
           <input type="text" id="f-notes" placeholder="Ej: Bergamota · Pimienta · Ambroxan">
         </div>
-        <div class="admin-row">
+        <div class="admin-field">
+          <label>Tipo de producto</label>
+          <select id="f-tipo" onchange="toggleTipoFields('f')">
+            <option value="decant">Decant (5 ml y 10 ml)</option>
+            <option value="completo">Perfume completo</option>
+            <option value="tester">Tester</option>
+          </select>
+        </div>
+        <div class="admin-row" id="f-decant-row">
           <div class="admin-field">
             <label>Precio 5 ml (Gs.)</label>
             <input type="number" id="f-price5" placeholder="Ej: 35000">
@@ -805,6 +814,16 @@
           <div class="admin-field">
             <label>Precio 10 ml (Gs.)</label>
             <input type="number" id="f-price10" placeholder="Ej: 62000">
+          </div>
+        </div>
+        <div class="admin-row" id="f-full-row" style="display:none;">
+          <div class="admin-field">
+            <label>Precio (Gs.)</label>
+            <input type="number" id="f-priceFull" placeholder="Ej: 450000">
+          </div>
+          <div class="admin-field">
+            <label>Tamaño (ml)</label>
+            <input type="number" id="f-mlFull" placeholder="Ej: 100">
           </div>
         </div>
         <div class="admin-field">
@@ -856,13 +875,24 @@
       </div>
       <div class="admin-field"><label>Nombre</label><input type="text" id="edit-name"></div>
       <div class="admin-field"><label>Notas olfativas</label><input type="text" id="edit-notes"></div>
-      <div class="admin-row">
+      <div class="admin-field"><label>Tipo de producto</label>
+        <select id="edit-tipo" onchange="toggleTipoFields('edit')">
+          <option value="decant">Decant (5 ml y 10 ml)</option>
+          <option value="completo">Perfume completo</option>
+          <option value="tester">Tester</option>
+        </select>
+      </div>
+      <div class="admin-row" id="edit-decant-row">
         <div class="admin-field"><label>Precio 5ml (Gs.)</label><input type="number" id="edit-price5"></div>
         <div class="admin-field"><label>Precio 10ml (Gs.)</label><input type="number" id="edit-price10"></div>
       </div>
-      <div class="admin-row">
+      <div class="admin-row" id="edit-old-row">
         <div class="admin-field"><label>Precio anterior 5ml (opcional)</label><input type="number" id="edit-priceOld5" placeholder="Para mostrar tachado"></div>
         <div class="admin-field"><label>Precio anterior 10ml (opcional)</label><input type="number" id="edit-priceOld10" placeholder="Para mostrar tachado"></div>
+      </div>
+      <div class="admin-row" id="edit-full-row" style="display:none;">
+        <div class="admin-field"><label>Precio (Gs.)</label><input type="number" id="edit-priceFull"></div>
+        <div class="admin-field"><label>Tamaño (ml)</label><input type="number" id="edit-mlFull"></div>
       </div>
       <button class="edit-save-btn" onclick="saveEdit()">Guardar cambios</button>
       <button onclick="closeEditModal()" style="background:transparent;border:0.5px solid rgba(0,0,0,0.2);padding:12px;width:100%;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-top:0.5rem;">Cancelar</button>
@@ -951,6 +981,8 @@
   const UPLOAD_PRESET = "qnsjs5t1";
 
   let products = [];
+  function isFull(p) { return !!p && (p.tipo === 'completo' || p.tipo === 'tester'); }
+  function fullShort(p) { return (p.tipo === 'tester' ? 'Tester' : 'Frasco') + (p.mlFull ? ' ' + p.mlFull + 'ml' : ''); }
   let currentProduct = null;
   let selectedMl = 5;
   let detailQty = 1;
@@ -993,7 +1025,10 @@
 
   function renderCatalogue() {
     const grid = document.getElementById('catalogue-grid');
-    let filtered = activeFilter === 'todos' ? products : products.filter(p => p.category === activeFilter);
+    let filtered;
+    if (activeFilter === 'completos') filtered = products.filter(isFull);
+    else if (activeFilter === 'todos') filtered = searchQuery ? products : products.filter(p => !isFull(p));
+    else filtered = products.filter(p => !isFull(p) && p.category === activeFilter);
     if (searchQuery) {
       filtered = filtered.filter(p =>
         p.name.toLowerCase().includes(searchQuery) ||
@@ -1002,7 +1037,7 @@
       );
     }
     if (!filtered.length) {
-      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? 'Sin resultados.' : 'No hay productos en esta categoría todavía.') + '</p>';
+      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? 'Sin resultados.' : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : 'No hay productos en esta categoría todavía.') + '</p>';
       return;
     }
     grid.innerHTML = filtered.map((p) => {
@@ -1011,7 +1046,7 @@
       const badgeClass = isAgotado ? 'badge-agotado' : p.badge ? `badge-${p.badge}` : '';
       const badgeHTML = (isAgotado || p.badge) ? `<span class="badge ${badgeClass}">${badgeLabel}</span>` : '';
       const imgHTML = p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy">` : `<div class="product-img-placeholder"></div>`;
-      const priceHTML = p.priceOld5 ? `<div class="product-price"><span class="product-price-old">Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}</span><span class="product-price-sale">Gs. ${Number(p.price5).toLocaleString('es-PY')}</span><span class="product-ml"> / 5ml</span></div>` : `<div class="product-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>`;
+      const priceHTML = isFull(p) ? `<div class="product-price">Gs. ${Number(p.priceFull).toLocaleString('es-PY')} <span class="product-ml">/ ${fullShort(p)}</span></div>` : p.priceOld5 ? `<div class="product-price"><span class="product-price-old">Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}</span><span class="product-price-sale">Gs. ${Number(p.price5).toLocaleString('es-PY')}</span><span class="product-ml"> / 5ml</span></div>` : `<div class="product-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>`;
       return `
       <div class="product-card${isAgotado ? ' agotado' : ''}" onclick="openDetail('${p.firestoreId}')">
         <button class="card-delete-btn" onclick="event.stopPropagation();deleteProduct('${p.firestoreId}')">✕</button>
@@ -1029,7 +1064,7 @@
     }).join('');
     if (adminMode) document.body.classList.add('admin-mode');
     const counter = document.getElementById('product-counter');
-    if (counter) counter.textContent = products.length + ' fragancia' + (products.length !== 1 ? 's' : '') + ' disponible' + (products.length !== 1 ? 's' : '');
+    if (counter) { const n = products.filter(x => !isFull(x)).length; counter.textContent = n + ' fragancia' + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : ''); }
   }
 
   window.openDetail = function(firestoreId) {
@@ -1037,8 +1072,12 @@
     if (!currentProduct) return;
     selectedMl = 5;
     detailQty = 1;
-    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.size-btn')[0].classList.add('active');
+    const sizeWrap = document.getElementById('detail-size-btns');
+    if (isFull(currentProduct)) {
+      sizeWrap.innerHTML = '<button class="size-btn active" style="cursor:default;">' + fullShort(currentProduct) + '</button>';
+    } else {
+      sizeWrap.innerHTML = '<button class="size-btn active" onclick="selectSize(this,5)">5 ml</button><button class="size-btn" onclick="selectSize(this,10)">10 ml</button>';
+    }
     document.getElementById('detail-qty').textContent = '1';
     renderDetail();
     renderSimilar(currentProduct);
@@ -1057,13 +1096,15 @@
     document.getElementById('detail-name').textContent = p.name;
     document.getElementById('detail-notes').textContent = p.notes || '—';
     document.getElementById('detail-brand-label').innerHTML = p.brand + '<br>' + p.name.split(' ')[0];
-    const price = selectedMl === 5 ? p.price5 : p.price10;
-    const priceOld = selectedMl === 5 ? p.priceOld5 : p.priceOld10;
+    const full = isFull(p);
+    const price = full ? p.priceFull : (selectedMl === 5 ? p.price5 : p.price10);
+    const priceOld = full ? 0 : (selectedMl === 5 ? p.priceOld5 : p.priceOld10);
+    const mlText = full ? fullShort(p) : selectedMl + 'ml';
     const priceEl = document.getElementById('detail-price');
     if (priceOld) {
-      priceEl.innerHTML = `<span style="font-size:18px;color:#aaa;text-decoration:line-through;margin-right:10px;">Gs. ${Number(priceOld).toLocaleString('es-PY')}</span><span style="color:#c00;">Gs. ${Number(price).toLocaleString('es-PY')}</span><span style="font-size:16px;color:#aaa;"> / ${selectedMl}ml</span>`;
+      priceEl.innerHTML = `<span style="font-size:18px;color:#aaa;text-decoration:line-through;margin-right:10px;">Gs. ${Number(priceOld).toLocaleString('es-PY')}</span><span style="color:#c00;">Gs. ${Number(price).toLocaleString('es-PY')}</span><span style="font-size:16px;color:#aaa;"> / ${mlText}</span>`;
     } else {
-      priceEl.textContent = 'Gs. ' + Number(price).toLocaleString('es-PY') + ' / ' + selectedMl + 'ml';
+      priceEl.textContent = 'Gs. ' + Number(price).toLocaleString('es-PY') + ' / ' + mlText;
     }
     const img = document.getElementById('detail-img');
     const placeholder = document.getElementById('detail-placeholder');
@@ -1091,13 +1132,14 @@
   // ── CART ──────────────────────────────────────────────────
   window.addToCart = function() {
     const p = currentProduct;
-    const price = selectedMl === 5 ? p.price5 : p.price10;
-    const key = p.firestoreId + '_' + selectedMl;
+    const full = isFull(p);
+    const price = full ? p.priceFull : (selectedMl === 5 ? p.price5 : p.price10);
+    const key = p.firestoreId + '_' + (full ? 'full' : selectedMl);
     const existing = cart.find(i => i.key === key);
     if (existing) {
       existing.qty += detailQty;
     } else {
-      cart.push({ key, firestoreId: p.firestoreId, brand: p.brand, name: p.name, ml: selectedMl, price: Number(price), qty: detailQty, img: p.img || '' });
+      cart.push({ key, firestoreId: p.firestoreId, brand: p.brand, name: p.name, ml: full ? (p.mlFull || 0) : selectedMl, label: full ? fullShort(p) : '', price: Number(price), qty: detailQty, img: p.img || '' });
     }
     updateCartBadge();
     closeDetail();
@@ -1140,7 +1182,7 @@
         <div class="cart-item-info">
           <div class="cart-item-brand">${item.brand}</div>
           <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-ml">${item.ml} ml</div>
+          <div class="cart-item-ml">${item.label || (item.ml + ' ml')}</div>
           <div class="cart-item-price">Gs. ${(item.price * item.qty).toLocaleString('es-PY')}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -1168,7 +1210,7 @@
 
   window.checkoutWhatsApp = function() {
     if (!cart.length) return;
-    const lines = cart.map(i => `${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.ml}ml, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
+    const lines = cart.map(i => `${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
     const msg = `Hola! Quiero hacer un pedido\n\n${lines}\n\nTotal: Gs. ${total.toLocaleString('es-PY')}`;
     window.open('https://wa.me/595982413137?text=' + encodeURIComponent(msg), '_blank');
@@ -1229,6 +1271,14 @@
     }
   };
 
+  window.toggleTipoFields = function(prefix) {
+    const full = document.getElementById(prefix + '-tipo').value !== 'decant';
+    document.getElementById(prefix + '-decant-row').style.display = full ? 'none' : '';
+    document.getElementById(prefix + '-full-row').style.display = full ? '' : 'none';
+    const old = document.getElementById(prefix + '-old-row');
+    if (old) old.style.display = full ? 'none' : '';
+  };
+
   window.addProduct = async function() {
     if (!checkRateLimit()) { alert('Demasiados intentos. Espera un momento.'); return; }
     const brand = sanitize(document.getElementById('f-brand').value);
@@ -1236,17 +1286,27 @@
     const notes = sanitize(document.getElementById('f-notes').value);
     const price5 = parseInt(document.getElementById('f-price5').value);
     const price10 = parseInt(document.getElementById('f-price10').value);
+    const tipo = document.getElementById('f-tipo').value;
+    const full = tipo !== 'decant';
+    const priceFull = parseInt(document.getElementById('f-priceFull').value);
+    const mlFull = parseInt(document.getElementById('f-mlFull').value) || 0;
     const category = document.getElementById('f-cat').value;
     const badge = document.querySelector('input[name="badge"]:checked')?.value || '';
-    if (!brand || !name || !price5 || !price10) { alert('Completa al menos: Marca, Nombre, Precio 5ml y Precio 10ml.'); return; }
+    if (!brand || !name) { alert('Completa al menos: Marca y Nombre.'); return; }
+    if (full && !priceFull) { alert('Completa el precio del producto.'); return; }
+    if (!full && (!price5 || !price10)) { alert('Completa el Precio 5ml y el Precio 10ml.'); return; }
     showLoading('Guardando producto...');
     try {
-      await addDoc(collection(db, "productos"), { brand, name, notes: notes || '—', price5, price10, badge, category, img: pendingImg, createdAt: Date.now() });
+      await addDoc(collection(db, "productos"), full
+        ? { brand, name, notes: notes || '—', tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now() }
+        : { brand, name, notes: notes || '—', tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now() });
       document.getElementById('f-brand').value = '';
       document.getElementById('f-name').value = '';
       document.getElementById('f-notes').value = '';
       document.getElementById('f-price5').value = '';
       document.getElementById('f-price10').value = '';
+      document.getElementById('f-priceFull').value = '';
+      document.getElementById('f-mlFull').value = '';
       document.getElementById('f-cat').value = 'todos';
       document.getElementById('b-none').checked = true;
       pendingImg = '';
@@ -1275,7 +1335,7 @@
         <div class="admin-product-thumb">${p.img ? `<img src="${p.img}" alt="${p.name}">` : 'EA'}</div>
         <div class="admin-product-info">
           <div class="admin-product-name">${p.brand} — ${p.name} ${p.agotado ? '<span style="font-size:10px;background:#888;color:#fff;padding:2px 7px;border-radius:3px;margin-left:4px;">Agotado</span>' : ''}</div>
-          <div class="admin-product-price">5ml: Gs. ${Number(p.price5).toLocaleString('es-PY')} · 10ml: Gs. ${Number(p.price10).toLocaleString('es-PY')}</div>
+          <div class="admin-product-price">${isFull(p) ? fullShort(p) + ': Gs. ' + Number(p.priceFull).toLocaleString('es-PY') : '5ml: Gs. ' + Number(p.price5).toLocaleString('es-PY') + ' · 10ml: Gs. ' + Number(p.price10).toLocaleString('es-PY')}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
           <button class="admin-del-btn" style="background:#f0f0f0;border-color:#ddd;color:#555;font-size:13px;" onclick="openEditModal('${p.firestoreId}')" title="Editar">✏️</button>
@@ -1304,11 +1364,15 @@
     document.getElementById('edit-brand').value = p.brand;
     document.getElementById('edit-name').value = p.name;
     document.getElementById('edit-notes').value = p.notes || '';
-    document.getElementById('edit-price5').value = p.price5;
-    document.getElementById('edit-price10').value = p.price10;
+    document.getElementById('edit-price5').value = p.price5 || '';
+    document.getElementById('edit-price10').value = p.price10 || '';
     document.getElementById('edit-priceOld5').value = p.priceOld5 || '';
     document.getElementById('edit-priceOld10').value = p.priceOld10 || '';
     document.getElementById('edit-cat').value = p.category || 'todos';
+    document.getElementById('edit-tipo').value = p.tipo || 'decant';
+    document.getElementById('edit-priceFull').value = p.priceFull || '';
+    document.getElementById('edit-mlFull').value = p.mlFull || '';
+    toggleTipoFields('edit');
     pendingEditImg = '';
     document.getElementById('edit-img-input').value = '';
     const prev = document.getElementById('edit-img-preview');
@@ -1366,11 +1430,15 @@
     const priceOld5 = parseInt(document.getElementById('edit-priceOld5').value) || 0;
     const priceOld10 = parseInt(document.getElementById('edit-priceOld10').value) || 0;
     const category = document.getElementById('edit-cat').value;
-    if (!brand || !name || !price5 || !price10) { alert('Completa los campos obligatorios.'); return; }
+    const tipo = document.getElementById('edit-tipo').value;
+    const full = tipo !== 'decant';
+    const priceFull = parseInt(document.getElementById('edit-priceFull').value);
+    const mlFull = parseInt(document.getElementById('edit-mlFull').value) || 0;
+    if (!brand || !name || (full ? !priceFull : (!price5 || !price10))) { alert('Completa los campos obligatorios.'); return; }
     if (editImgUploading) { alert('Esperá un segundo, la foto todavía se está subiendo.'); return; }
     showLoading('Guardando cambios...');
     try {
-      const updates = { brand, name, notes, price5, price10, category };
+      const updates = full ? { brand, name, notes, tipo, priceFull, mlFull, category } : { brand, name, notes, tipo, price5, price10, category };
       if (pendingEditImg) updates.img = pendingEditImg;
       if (priceOld5) updates.priceOld5 = priceOld5; else updates.priceOld5 = null;
       if (priceOld10) updates.priceOld10 = priceOld10; else updates.priceOld10 = null;
@@ -1384,6 +1452,7 @@
   window.openShareModal = function(firestoreId) {
     const p = products.find(x => x.firestoreId === firestoreId);
     if (!p) return;
+    if (isFull(p)) { alert('La imagen de oferta por ahora solo está disponible para decants.'); return; }
     document.getElementById('share-firestoreid').value = firestoreId;
     const fidEl = document.getElementById('share-firestoreid');
     delete fidEl.dataset.nuevo5; delete fidEl.dataset.nuevo10; delete fidEl.dataset.old5; delete fidEl.dataset.old10;
@@ -1600,7 +1669,7 @@
 
   // ── SIMILAR PRODUCTS ──────────────────────────────────────
   function renderSimilar(p) {
-    const similar = products.filter(x => x.firestoreId !== p.firestoreId && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 4);
+    const similar = products.filter(x => x.firestoreId !== p.firestoreId && isFull(x) === isFull(p) && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 4);
     const grid = document.getElementById('similar-grid');
     const section = document.getElementById('similar-section');
     if (!similar.length) { section.style.display = 'none'; return; }
@@ -1617,7 +1686,7 @@
         <div style="padding:0.9rem;">
           <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:2px;">${s.brand}</div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:#0a0a0a;line-height:1.2;margin-bottom:4px;">${s.name}</div>
-          ${s.priceOld5 ? `<div style="font-size:11px;color:#aaa;text-decoration:line-through;">Gs. ${Number(s.priceOld5).toLocaleString('es-PY')}</div><div style="font-size:13px;font-weight:500;color:#c00;">Gs. ${Number(s.price5).toLocaleString('es-PY')}<span style="font-size:11px;color:#aaa;font-weight:400;"> /5ml</span></div>` : `<div style="font-size:13px;color:#555;">Gs. ${Number(s.price5).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;">/5ml</span></div>`}
+          ${isFull(s) ? `<div style="font-size:13px;color:#555;">Gs. ${Number(s.priceFull).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;">/ ${fullShort(s)}</span></div>` : s.priceOld5 ? `<div style="font-size:11px;color:#aaa;text-decoration:line-through;">Gs. ${Number(s.priceOld5).toLocaleString('es-PY')}</div><div style="font-size:13px;font-weight:500;color:#c00;">Gs. ${Number(s.price5).toLocaleString('es-PY')}<span style="font-size:11px;color:#aaa;font-weight:400;"> /5ml</span></div>` : `<div style="font-size:13px;color:#555;">Gs. ${Number(s.price5).toLocaleString('es-PY')} <span style="font-size:11px;color:#aaa;">/5ml</span></div>`}
         </div>
       </div>`;
     }).join('');
@@ -1715,7 +1784,7 @@
 
   function showQuizResults() {
     const { para, aroma, ocasion } = quizAnswers;
-    let pool = products.filter(p => !p.agotado);
+    let pool = products.filter(p => !p.agotado && !isFull(p));
     if (para === 'hombre') pool = pool.filter(p => ['masculino','unisex','todos'].includes(p.category));
     else if (para === 'mujer') pool = pool.filter(p => ['femenino','unisex','todos'].includes(p.category));
     const hits = (text, group) => (aromaWords[group] || []).filter(k => text.includes(k)).length;
