@@ -330,6 +330,80 @@
   .product-img { background: #fff; }
   .product-img img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
   @media (max-width: 768px) { .hero { min-height: 0; padding: 100px 1.25rem 44px; } .hero-group { font-size: 9.5px; letter-spacing: 0.07em; gap: 7px; } }
+
+  /* ===== DETALLE DE PRODUCTO EN NEGRO ===== */
+  #product-detail { background: #000 !important; color: #fff; }
+  #product-detail > div > div:first-child { background: #000 !important; border-color: rgba(255,255,255,0.12) !important; }
+  #product-detail > div > div:first-child button { color: rgba(255,255,255,0.6) !important; }
+  #product-detail [style*="border-top"] { border-color: rgba(255,255,255,0.12) !important; }
+  #detail-name, #detail-price { color: #fff !important; }
+  #detail-price span:nth-child(2) { color: #ff6b6b !important; }
+  #product-detail .size-btn { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); }
+  #product-detail .size-btn.active { background: #fff; border-color: #fff; color: #000; }
+  #product-detail .size-btn:not(.active):hover { border-color: #fff; color: #fff; }
+  #product-detail .qty-selector { border-color: rgba(255,255,255,0.3); }
+  #product-detail .qty-btn { color: #fff; }
+  #product-detail .qty-btn:hover { background: #1a1a1a; }
+  #product-detail .qty-num { color: #fff; border-color: rgba(255,255,255,0.15); }
+  #product-detail svg { stroke: #fff !important; }
+  #product-detail [style*="color:#333"] { color: rgba(255,255,255,0.8) !important; }
+  #product-detail .d-add { background: #fff !important; color: #000 !important; }
+  #product-detail .d-keep { background: transparent !important; color: #fff !important; border-color: rgba(255,255,255,0.4) !important; }
+  #product-detail .d-keep:hover { border-color: #fff !important; }
+  #similar-grid > div { background: #0a0a0a !important; border-color: rgba(255,255,255,0.12) !important; }
+  #similar-grid [style*="color:#0a0a0a"] { color: #fff !important; }
+  #similar-grid [style*="color:#555"] { color: rgba(255,255,255,0.7) !important; }
+  #review-toggle-btn { color: rgba(255,255,255,0.7) !important; border-color: rgba(255,255,255,0.3) !important; }
+  #product-reviews-list [style*="color:#0a0a0a"] { color: #fff !important; }
+  #product-reviews-list [style*="color:#555"] { color: rgba(255,255,255,0.7) !important; }
+  #product-reviews-list [style*="background:#0a0a0a"] { border: 0.5px solid rgba(255,255,255,0.4); }
+  #product-review-form { background: #0a0a0a !important; border-color: rgba(255,255,255,0.12) !important; }
+  #product-review-form input, #product-review-form textarea { background: #000 !important; color: #fff !important; border-color: rgba(255,255,255,0.2) !important; }
+  #product-review-form button { background: #fff !important; color: #000 !important; }
+  #product-review-form .prod-star-opt { color: #fff; }
+
+  /* ===== CARRITO, PANEL ADMIN Y VENTANAS EN NEGRO ===== */
+  .loading-overlay { background: rgba(0,0,0,0.85); }
+  .loading-spinner { border-color: rgba(255,255,255,0.15); border-top-color: #fff; }
+  .loading-text { color: rgba(255,255,255,0.6); }
+  .cart-panel, .admin-panel { background: #000; border-left: 0.5px solid rgba(255,255,255,0.12); box-shadow: -8px 0 40px rgba(0,0,0,0.6); }
+  .cart-header, .admin-header { background: #000; border-bottom: 0.5px solid rgba(255,255,255,0.12); }
+  .cart-item { border-bottom-color: rgba(255,255,255,0.1); }
+  .cart-item-img { background: #fff; border-color: rgba(255,255,255,0.15); object-fit: contain; padding: 2px; }
+  .cart-item-brand { color: rgba(255,255,255,0.5); }
+  .cart-item-name, .cart-item-price, .cart-total-amount { color: #fff; }
+  .cart-item-ml { color: #8a8a8a; }
+  .cart-item-qty { border-color: rgba(255,255,255,0.25); }
+  .cart-qty-btn { color: #fff; }
+  .cart-qty-btn:hover { background: #1a1a1a; }
+  .cart-qty-num { color: #fff; border-color: rgba(255,255,255,0.15); }
+  .cart-item-remove { color: #8a8a8a; }
+  .cart-footer { background: #000; border-top-color: rgba(255,255,255,0.12); }
+  .cart-total-label { color: rgba(255,255,255,0.5); }
+  .cart-checkout-btn { background: #fff; color: #000; }
+  .cart-checkout-btn:hover { background: #d0d0d0; }
+  .cart-checkout-btn:disabled { background: #222; color: #666; }
+  .admin-section-title { color: rgba(255,255,255,0.5); border-bottom-color: rgba(255,255,255,0.12); }
+  .admin-field label { color: rgba(255,255,255,0.55); }
+  .admin-field input, .admin-field select { background: #0a0a0a; color: #fff; border-color: rgba(255,255,255,0.2); }
+  .admin-field input:focus, .admin-field select:focus { background: #000; border-color: #fff; }
+  .img-upload-area { background: #0a0a0a; border-color: rgba(255,255,255,0.25); }
+  .img-upload-area:hover { background: #111; border-color: #fff; }
+  .img-upload-text { color: rgba(255,255,255,0.55); }
+  .admin-product-item { background: #0a0a0a; border-color: rgba(255,255,255,0.12); }
+  .admin-product-thumb { background: #fff; }
+  .admin-product-price { color: #8a8a8a; }
+  .admin-badge-opt + label { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+  .admin-badge-opt:checked + label { background: #fff; color: #000; border-color: #fff; }
+  .admin-panel [style*="background:#f0f0f0"] { background: #1a1a1a !important; color: #ddd !important; border-color: #333 !important; }
+  .admin-submit { background: #fff; color: #000; }
+  .admin-submit:hover { background: #d0d0d0; }
+  .edit-modal, .share-modal { background: #0a0a0a; border: 0.5px solid rgba(255,255,255,0.15); color: #fff; }
+  .edit-save-btn { background: #fff; color: #000; }
+  .edit-modal button[onclick="closeEditModal()"], .share-close-btn { color: rgba(255,255,255,0.7) !important; border-color: rgba(255,255,255,0.3) !important; }
+  .share-modal input, .share-modal select { background: #000 !important; color: #fff; border-color: rgba(255,255,255,0.2) !important; }
+  .share-preview { background: #000; border-color: rgba(255,255,255,0.12); color: #ddd; }
+  #share-calc-result { color: rgba(255,255,255,0.7) !important; }
 </style>
 </head>
 <body>
@@ -574,8 +648,8 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:0.75rem;">
-        <button onclick="addToCart()" style="background:#0a0a0a; color:#fff; border:none; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#0a0a0a'">Agregar al carrito</button>
-        <button onclick="closeDetail()" style="background:transparent; color:#0a0a0a; border:0.5px solid #0a0a0a; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#0a0a0a';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#0a0a0a'">Seguir viendo</button>
+        <button class="d-add" onclick="addToCart()" style="background:#0a0a0a; color:#fff; border:none; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#0a0a0a'">Agregar al carrito</button>
+        <button class="d-keep" onclick="closeDetail()" style="background:transparent; color:#0a0a0a; border:0.5px solid #0a0a0a; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#0a0a0a';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#0a0a0a'">Seguir viendo</button>
       </div>
 
       <!-- SIMILAR PRODUCTS -->
