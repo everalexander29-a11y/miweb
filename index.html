@@ -964,7 +964,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCTiZAtojbN6yjTKIOe86MXBK-AzGb55yk",
@@ -1014,40 +1014,82 @@
   }
   function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
 
-  // Guarda los productos en el celular del cliente unos minutos para gastar menos lecturas de Firebase
-  const CACHE_KEY = 'ea_productos_v1';
-  const CACHE_TTL = 10 * 60 * 1000;
+  // Los productos se guardan en el celular del cliente. Al volver a entrar solo se piden los productos
+  // que cambiaron desde la última vez (si no hubo cambios, es 1 sola lectura).
+  const CACHE_KEY = 'ea_productos_v3';
+  const CACHE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;  // cada 30 días se vuelve a descargar todo por seguridad
   let listenerStarted = false;
+  let maxStamp = 0;
+
+  function stampOf(d) { return d.updatedAt || d.createdAt || 0; }
+  function nextStamp() { return Math.max(Date.now(), maxStamp + 1); }
+  function sortProducts(list) { return list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); }
 
   function readProductsCache() {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       const c = JSON.parse(raw);
-      if (!c || !Array.isArray(c.data) || !c.data.length || Date.now() - c.t > CACHE_TTL) return null;
-      return c.data;
+      if (!c || !Array.isArray(c.data) || !c.data.length || !c.fullAt || !c.lastSync) return null;
+      return c;
     } catch (e) { return null; }
   }
-  function saveProductsCache(list) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data: list })); } catch (e) {}
+  function saveProductsCache(list, lastSync, fullAt) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ fullAt, lastSync, data: list })); } catch (e) {}
   }
 
+  // Descarga completa (primera visita, o cada 30 días)
+  async function loadAllProducts() {
+    const snap = await getDocs(query(collection(db, "productos"), orderBy("createdAt", "asc")));
+    const raw = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+    raw.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
+    products = raw.filter(d => !d.deleted);
+    saveProductsCache(products, maxStamp, Date.now());
+    renderCatalogue();
+  }
+
+  // Solo los productos nuevos, editados o eliminados desde la última vez
+  async function syncChanges(cache) {
+    const snap = await getDocs(query(collection(db, "productos"), where("updatedAt", ">", cache.lastSync), orderBy("updatedAt", "asc")));
+    let lastSync = cache.lastSync;
+    const map = new Map(cache.data.map(p => [p.firestoreId, p]));
+    snap.docs.forEach(d => {
+      const v = { firestoreId: d.id, ...d.data() };
+      lastSync = Math.max(lastSync, v.updatedAt || 0);
+      if (v.deleted) map.delete(d.id); else map.set(d.id, v);
+    });
+    maxStamp = Math.max(maxStamp, lastSync);
+    products = sortProducts(Array.from(map.values()));
+    saveProductsCache(products, lastSync, cache.fullAt);
+    if (snap.size) renderCatalogue();
+  }
+
+  // Modo administrador: tiempo real y completo
   function startListener() {
     if (listenerStarted) return;
     listenerStarted = true;
     const q = query(collection(db, "productos"), orderBy("createdAt", "asc"));
     onSnapshot(q, (snapshot) => {
-      products = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
-      saveProductsCache(products);
+      const raw = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      raw.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
+      products = raw.filter(d => !d.deleted);
+      saveProductsCache(products, maxStamp, Date.now());
       renderCatalogue();
       if (adminMode) renderAdminList();
     });
   }
 
-  function initRealtimeListener() {
-    const cached = readProductsCache();
-    if (cached) { products = cached; renderCatalogue(); return; }
-    startListener();
+  async function initRealtimeListener() {
+    const cache = readProductsCache();
+    if (cache && Date.now() - cache.fullAt < CACHE_MAX_AGE) {
+      products = cache.data;
+      maxStamp = cache.lastSync;
+      renderCatalogue();
+      try { await syncChanges(cache); } catch (e) { /* se queda con lo guardado */ }
+      return;
+    }
+    try { await loadAllProducts(); }
+    catch (e) { if (cache) { products = cache.data; renderCatalogue(); } }
   }
 
   function renderCatalogue() {
@@ -1326,8 +1368,8 @@
     showLoading('Guardando producto...');
     try {
       await addDoc(collection(db, "productos"), full
-        ? { brand, name, notes: notes || '—', tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now() }
-        : { brand, name, notes: notes || '—', tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now() });
+        ? { brand, name, notes: notes || '—', tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() }
+        : { brand, name, notes: notes || '—', tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() });
       document.getElementById('f-brand').value = '';
       document.getElementById('f-name').value = '';
       document.getElementById('f-notes').value = '';
@@ -1350,7 +1392,7 @@
   window.deleteProduct = async function(firestoreId) {
     if (!confirm('Eliminar este producto?')) return;
     showLoading('Eliminando...');
-    try { await deleteDoc(doc(db, "productos", firestoreId)); } catch(err) { alert('Error al eliminar.'); }
+    try { await updateDoc(doc(db, "productos", firestoreId), { deleted: true, updatedAt: nextStamp() }); } catch(err) { alert('Error al eliminar.'); }
     hideLoading();
   };
 
@@ -1379,7 +1421,7 @@
     const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     showLoading(isAgotado ? 'Marcando como disponible...' : 'Marcando como agotado...');
     try {
-      await updateDoc(doc(db, "productos", firestoreId), { agotado: !isAgotado });
+      await updateDoc(doc(db, "productos", firestoreId), { agotado: !isAgotado, updatedAt: nextStamp() });
     } catch(err) { alert('Error. Verifica tu conexion.'); }
     hideLoading();
   };
@@ -1467,6 +1509,7 @@
     showLoading('Guardando cambios...');
     try {
       const updates = full ? { brand, name, notes, tipo, priceFull, mlFull, category } : { brand, name, notes, tipo, price5, price10, category };
+      updates.updatedAt = nextStamp();
       if (pendingEditImg) updates.img = pendingEditImg;
       if (priceOld5) updates.priceOld5 = priceOld5; else updates.priceOld5 = null;
       if (priceOld10) updates.priceOld10 = priceOld10; else updates.priceOld10 = null;
