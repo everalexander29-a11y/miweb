@@ -1038,7 +1038,6 @@
   // 1 lectura sin importar cuántos productos haya. Además se guarda en el celular unos minutos.
   const CACHE_KEY = 'ea_productos_v4';
   const CACHE_TTL = 10 * 60 * 1000;
-  let listenerStarted = false;
   let maxStamp = 0;
   let publishTimer = null;
 
@@ -1080,31 +1079,60 @@
     renderCatalogue();
   }
 
-  // Administrador: después de cada cambio, actualiza el documento único que leen los clientes
-  function publishCatalog() {
-    clearTimeout(publishTimer);
-    publishTimer = setTimeout(async () => {
-      try {
-        const items = JSON.parse(JSON.stringify(products));
-        if (JSON.stringify(items).length > 900000) { alert('El catálogo es demasiado grande para publicarlo. Avisame para ajustarlo.'); return; }
-        await setDoc(doc(db, 'config', 'catalogo'), { items, n: items.length, updatedAt: Date.now() });
-      } catch (e) { alert('No se pudo actualizar el catálogo para los clientes. Revisá tu conexión y volvé a guardar el cambio.'); }
-    }, 1500);
+  // ===== Administrador: sin escucha en tiempo real, para gastar casi 0 lecturas =====
+  function cleanItems(list) { return JSON.parse(JSON.stringify(list)); }
+
+  function applyChange(list, change) {
+    const id = change.remove || (change.upsert && change.upsert.firestoreId);
+    const out = list.filter(x => x.firestoreId !== id);
+    if (change.upsert) out.push(change.upsert);
+    return sortProducts(out);
   }
 
-  // Modo administrador: tiempo real y completo
-  function startListener() {
-    if (listenerStarted) return;
-    listenerStarted = true;
-    const q = query(collection(db, "productos"), orderBy("createdAt", "asc"));
-    onSnapshot(q, (snapshot) => {
-      const raw = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
-      raw.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
-      products = raw.filter(d => !d.deleted);
+  // Publica el catálogo completo (solo la primera vez, cuando todavía no existe)
+  async function publishAll() {
+    try {
+      const items = cleanItems(products);
+      await setDoc(doc(db, 'config', 'catalogo'), { items, n: items.length, updatedAt: Date.now() });
+    } catch (e) { alert('No se pudo publicar el catálogo para los clientes. Revisá tu conexión e intentá entrar de nuevo como administrador.'); }
+  }
+
+  // Después de cada cambio: se ve al instante en tu panel y se actualiza el catálogo de los clientes
+  async function publishChange(change) {
+    products = applyChange(products, change);
+    if (change.upsert) maxStamp = Math.max(maxStamp, stampOf(change.upsert));
+    saveProductsCache(products);
+    renderCatalogue();
+    renderAdminList();
+    try {
+      const ref = doc(db, 'config', 'catalogo');
+      const snap = await getDoc(ref);   // se mezcla con lo publicado por si cambiaste desde otro dispositivo
+      const remote = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : null;
+      const items = cleanItems(remote ? applyChange(remote, change) : products);
+      if (JSON.stringify(items).length > 900000) { alert('El catálogo es demasiado grande para publicarlo. Avisame para ajustarlo.'); return; }
+      await setDoc(ref, { items, n: items.length, updatedAt: Date.now() });
+      products = items;
       saveProductsCache(products);
       renderCatalogue();
-      if (adminMode) { renderAdminList(); publishCatalog(); }
-    });
+      renderAdminList();
+    } catch (e) { alert('Se guardó el producto, pero no se pudo actualizar el catálogo para los clientes. Volvé a guardar el cambio para intentarlo otra vez.'); }
+  }
+
+  // Al entrar como administrador: carga el catálogo (1 lectura). Solo si no existe, lee toda la colección.
+  async function adminLoad() {
+    try {
+      const snap = await getDoc(doc(db, 'config', 'catalogo'));
+      const items = snap.exists() ? snap.data().items : null;
+      if (Array.isArray(items) && items.length) {
+        items.forEach(d => { maxStamp = Math.max(maxStamp, stampOf(d)); });
+        products = sortProducts(items.slice());
+        saveProductsCache(products);
+        renderCatalogue();
+        return;
+      }
+    } catch (e) {}
+    await loadAllProducts();
+    await publishAll();
   }
 
   async function initRealtimeListener() {
@@ -1332,7 +1360,9 @@
       return;
     }
     adminMode = true;
-    startListener();
+    showLoading('Entrando...');
+    await adminLoad();
+    hideLoading();
     document.body.classList.add('admin-mode');
     document.getElementById('admin-overlay').classList.add('open');
     renderAdminList();
@@ -1395,9 +1425,11 @@
     if (!full && (!price5 || !price10)) { alert('Completa el Precio 5ml y el Precio 10ml.'); return; }
     showLoading('Guardando producto...');
     try {
-      await addDoc(collection(db, "productos"), full
+      const payload = full
         ? { brand, name, notes: notes, tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() }
-        : { brand, name, notes: notes, tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() });
+        : { brand, name, notes: notes, tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() };
+      const newRef = await addDoc(collection(db, "productos"), payload);
+      await publishChange({ upsert: { firestoreId: newRef.id, ...payload } });
       document.getElementById('f-brand').value = '';
       document.getElementById('f-name').value = '';
       document.getElementById('f-notes').value = '';
@@ -1420,7 +1452,10 @@
   window.deleteProduct = async function(firestoreId) {
     if (!confirm('Eliminar este producto?')) return;
     showLoading('Eliminando...');
-    try { await updateDoc(doc(db, "productos", firestoreId), { deleted: true, updatedAt: nextStamp() }); } catch(err) { alert('Error al eliminar.'); }
+    try {
+      await updateDoc(doc(db, "productos", firestoreId), { deleted: true, updatedAt: nextStamp() });
+      await publishChange({ remove: firestoreId });
+    } catch(err) { alert('Error al eliminar.'); }
     hideLoading();
   };
 
@@ -1449,7 +1484,10 @@
     const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     showLoading(isAgotado ? 'Marcando como disponible...' : 'Marcando como agotado...');
     try {
-      await updateDoc(doc(db, "productos", firestoreId), { agotado: !isAgotado, updatedAt: nextStamp() });
+      const upd = { agotado: !isAgotado, updatedAt: nextStamp() };
+      await updateDoc(doc(db, "productos", firestoreId), upd);
+      const base = products.find(x => x.firestoreId === firestoreId);
+      if (base) await publishChange({ upsert: { ...base, ...upd } });
     } catch(err) { alert('Error. Verifica tu conexion.'); }
     hideLoading();
   };
@@ -1542,6 +1580,8 @@
       if (priceOld5) updates.priceOld5 = priceOld5; else updates.priceOld5 = null;
       if (priceOld10) updates.priceOld10 = priceOld10; else updates.priceOld10 = null;
       await updateDoc(doc(db, "productos", firestoreId), updates);
+      const base = products.find(x => x.firestoreId === firestoreId) || { firestoreId };
+      await publishChange({ upsert: { ...base, ...updates } });
       closeEditModal();
     } catch(err) { alert('Error al guardar.'); }
     hideLoading();
@@ -1940,12 +1980,30 @@
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
   };
 
+  // Las reseñas aprobadas se leen UNA sola vez por visita y se guardan 10 minutos en el celular
+  const REV_CACHE_KEY = 'ea_resenas_v1';
+  const REV_TTL = 10 * 60 * 1000;
+  let reviewsPromise = null;
+  async function fetchApprovedReviews(force) {
+    if (!force) {
+      try {
+        const c = JSON.parse(localStorage.getItem(REV_CACHE_KEY) || 'null');
+        if (c && Array.isArray(c.data) && Date.now() - c.t < REV_TTL) return c.data;
+      } catch (e) {}
+      if (reviewsPromise) return reviewsPromise;
+    }
+    reviewsPromise = (async () => {
+      const snap = await getDocs(query(collection(db, "resenas"), where("approved", "==", true)));
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      try { localStorage.setItem(REV_CACHE_KEY, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+      return data;
+    })();
+    try { return await reviewsPromise; } finally { reviewsPromise = null; }
+  }
+
   async function loadAllReviews() {
-    const { collection: col, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    try {
-      const snap = await getDocs(col(db, "resenas"));
-      allReviews = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch(e) { console.log('Error cargando reseñas:', e); }
+    try { allReviews = await fetchApprovedReviews(); }
+    catch(e) { console.log('Error cargando reseñas:', e); }
   }
 
   function renderProductReviews(p) {
@@ -1996,12 +2054,10 @@
     });
   };
 
-  async function loadReviews() {
-    const { collection: col, query: q, orderBy: ob, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  async function loadReviews(force) {
     try {
-      const snap = await getDocs(q(col(db, "resenas"), ob("createdAt", "desc")));
       const grid = document.getElementById('reviews-grid');
-      const reviews = snap.docs.map(d => d.data()).filter(r => r.approved);
+      const reviews = (await fetchApprovedReviews(force)).filter(r => r.approved);
       if (!reviews.length) { grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;grid-column:1/-1;">Aun no hay reseñas. Sé el primero!</p>'; return; }
       grid.innerHTML = reviews.map(r => `
         <div class="review-card">
@@ -2034,7 +2090,7 @@
   window.approveReview = async function(id) {
     const { updateDoc: ud, doc: d } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     await ud(d(db, "resenas", id), { approved: true });
-    loadReviews();
+    loadReviews(true);
   };
 
   initRealtimeListener();
