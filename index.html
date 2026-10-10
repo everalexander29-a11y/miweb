@@ -450,6 +450,8 @@
 </style>
 <style>
 /* ===== VENTAS ===== */
+.edit-cancel-btn { background: transparent; color: #0a0a0a; border: 1px solid rgba(0,0,0,0.25); padding: 13px; width: 100%; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; margin-top: 0.6rem; }
+.edit-cancel-btn:hover { background: #f4f4f4; }
 .sales-periods { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
 .sales-periods button { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 7px 12px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: inherit; }
 .sales-periods button.active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
@@ -793,6 +795,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:18px;">
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openSales()">Ventas</button>
+        <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);" onclick="adminLogout()">Salir</button>
         <button class="admin-close" onclick="closeAdmin()">✕</button>
       </div>
     </div>
@@ -945,6 +948,20 @@
 </div>
 
 <!-- SHARE MODAL -->
+<div class="edit-overlay" id="login-overlay">
+  <div class="edit-backdrop" onclick="closeLogin()"></div>
+  <div class="edit-modal" style="width:min(420px,95vw);">
+    <h3>Acceso de administrador</h3>
+    <div class="admin-form">
+      <div class="admin-field"><label>Correo</label><input type="email" id="login-email" autocomplete="username" autocapitalize="none" autocorrect="off"></div>
+      <div class="admin-field"><label>Contraseña</label><input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+    </div>
+    <div id="login-error" style="color:#b00020;font-size:12px;min-height:1.3em;margin-top:0.8rem;"></div>
+    <button class="edit-save-btn" id="login-btn" onclick="doAdminLogin()">Entrar</button>
+    <button class="edit-cancel-btn" onclick="closeLogin()">Cancelar</button>
+  </div>
+</div>
+
 <div class="edit-overlay" id="sale-overlay">
   <div class="edit-backdrop" onclick="closeSaleModal()"></div>
   <div class="edit-modal">
@@ -973,6 +990,7 @@
     </div>
     <div style="font-size:11px;color:var(--light);margin-top:0.8rem;">Precio y costo son por unidad. El costo es opcional, pero sin él no se calcula la ganancia.</div>
     <button class="edit-save-btn" onclick="saveSale()">Guardar venta</button>
+    <button class="edit-cancel-btn" onclick="closeSaleModal()">Cancelar</button>
   </div>
 </div>
 
@@ -1057,6 +1075,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1070,6 +1089,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+const auth = getAuth(app);
   const CLOUD_NAME = "dzn2zbqpr";
   const UPLOAD_PRESET = "qnsjs5t1";
 
@@ -1423,16 +1443,16 @@
     if (tapCount >= 5) { tapCount = 0; openAdminAuth(); }
   };
 
-  async function openAdminAuth() {
-    const pass = prompt("Contrasena de administrador:");
-    if (!pass) return;
-    const msgBuffer = new TextEncoder().encode(pass);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,"0")).join("");
-    if (hash !== "a880f57c1df457659717bf578d74772c47cb1f20b9780eb8d6b6e6168453a6c9") {
-      alert("Contrasena incorrecta.");
-      return;
-    }
+  function authErrorMsg(e) {
+    const c = (e && e.code) || '';
+    if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email', 'auth/missing-password'].includes(c)) return 'Correo o contraseña incorrectos.';
+    if (c === 'auth/operation-not-allowed') return 'Falta activar el inicio de sesión con correo en Firebase (Authentication → Sign-in method → Correo/contraseña).';
+    if (c === 'auth/too-many-requests') return 'Demasiados intentos. Esperá unos minutos e intentá de nuevo.';
+    if (c === 'auth/network-request-failed') return 'No hay conexión. Revisá tu internet.';
+    return 'No se pudo entrar' + (c ? ' (' + c + ')' : '') + '.';
+  }
+
+  async function enterAdmin() {
     adminMode = true;
     showLoading('Entrando...');
     await adminLoad();
@@ -1441,6 +1461,41 @@
     document.getElementById('admin-overlay').classList.add('open');
     renderAdminList();
   }
+
+  async function openAdminAuth() {
+    try { if (auth.authStateReady) await auth.authStateReady(); } catch (e) {}
+    if (auth.currentUser) { await enterAdmin(); return; }
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-overlay').classList.add('open');
+    setTimeout(() => { const el = document.getElementById('login-email'); if (el) el.focus(); }, 60);
+  }
+
+  window.closeLogin = function() { document.getElementById('login-overlay').classList.remove('open'); };
+
+  window.doAdminLogin = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const err = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    if (!email || !pass) { err.textContent = 'Escribí el correo y la contraseña.'; return; }
+    btn.disabled = true;
+    err.textContent = '';
+    try { await signInWithEmailAndPassword(auth, email, pass); }
+    catch (e) { err.textContent = authErrorMsg(e); btn.disabled = false; return; }
+    btn.disabled = false;
+    document.getElementById('login-pass').value = '';
+    closeLogin();
+    await enterAdmin();
+  };
+
+  window.adminLogout = async function() {
+    try { await signOut(auth); } catch (e) {}
+    adminMode = false;
+    document.body.classList.remove('admin-mode');
+    closeAdmin();
+    renderCatalogue();
+  };
 
   window.closeAdmin = function() { document.getElementById('admin-overlay').classList.remove('open'); };
 
