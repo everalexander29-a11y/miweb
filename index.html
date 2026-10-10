@@ -981,6 +981,7 @@
   const UPLOAD_PRESET = "qnsjs5t1";
 
   let products = [];
+  function noteText(p) { const n = (p && p.notes || '').trim(); return n === '—' ? '' : n; }
   function isFull(p) { return !!p && (p.tipo === 'completo' || p.tipo === 'tester'); }
   function fullShort(p) { return (p.tipo === 'tester' ? 'Tester' : 'Frasco') + (p.mlFull ? ' ' + p.mlFull + 'ml' : ''); }
   let currentProduct = null;
@@ -1131,7 +1132,7 @@
         <div class="product-info">
           <div class="product-brand">${p.brand}</div>
           <div class="product-name">${p.name}</div>
-          <div class="product-notes">${p.notes || '—'}</div>
+          <div class="product-notes">${noteText(p)}</div>
           <div class="product-footer">
             ${priceHTML}
             <button class="btn-add" onclick="event.stopPropagation();openDetail('${p.firestoreId}')">${isAgotado ? 'Agotado' : 'Agregar'}</button>
@@ -1171,7 +1172,7 @@
     const p = currentProduct;
     document.getElementById('detail-brand').textContent = p.brand;
     document.getElementById('detail-name').textContent = p.name;
-    document.getElementById('detail-notes').textContent = p.notes || '—';
+    document.getElementById('detail-notes').textContent = noteText(p);
     document.getElementById('detail-brand-label').innerHTML = p.brand + '<br>' + p.name.split(' ')[0];
     const full = isFull(p);
     const price = full ? p.priceFull : (selectedMl === 5 ? p.price5 : p.price10);
@@ -1376,8 +1377,8 @@
     showLoading('Guardando producto...');
     try {
       await addDoc(collection(db, "productos"), full
-        ? { brand, name, notes: notes || '—', tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() }
-        : { brand, name, notes: notes || '—', tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() });
+        ? { brand, name, notes: notes, tipo, priceFull, mlFull, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() }
+        : { brand, name, notes: notes, tipo: 'decant', price5, price10, badge, category, img: pendingImg, createdAt: Date.now(), updatedAt: nextStamp() });
       document.getElementById('f-brand').value = '';
       document.getElementById('f-name').value = '';
       document.getElementById('f-notes').value = '';
@@ -1441,7 +1442,7 @@
     document.getElementById('edit-id').value = firestoreId;
     document.getElementById('edit-brand').value = p.brand;
     document.getElementById('edit-name').value = p.name;
-    document.getElementById('edit-notes').value = p.notes || '';
+    document.getElementById('edit-notes').value = noteText(p);
     document.getElementById('edit-price5').value = p.price5 || '';
     document.getElementById('edit-price10').value = p.price10 || '';
     document.getElementById('edit-priceOld5').value = p.priceOld5 || '';
@@ -1889,7 +1890,7 @@
           <div class="reco-info">
             <div class="reco-brand">${p.brand}</div>
             <div class="reco-name">${p.name}</div>
-            <div class="reco-notes">${p.notes || ''}</div>
+            <div class="reco-notes">${noteText(p)}</div>
             <div class="reco-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span>/ 5ml</span></div>
           </div>
         </div>`).join('');
