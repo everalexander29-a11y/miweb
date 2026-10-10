@@ -448,6 +448,26 @@
   .catalogue .badge { top: 8px; left: 8px; font-size: 8.5px; padding: 4px 8px; }
 }
 </style>
+<style>
+/* ===== VENTAS ===== */
+.sales-periods { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+.sales-periods button { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 7px 12px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: inherit; }
+.sales-periods button.active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+.sales-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.6rem; }
+.sales-card { background: #f6f6f6; padding: 0.8rem 0.9rem; }
+.sales-card .lbl { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); }
+.sales-card .val { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-top: 2px; }
+.sales-note { font-size: 11px; color: var(--light); margin: 0.2rem 0 0.4rem; }
+.sales-h { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); margin: 1.3rem 0 0.5rem; }
+.sale-top-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 0.35rem 0; }
+.sale-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid rgba(0,0,0,0.07); font-size: 13px; }
+.sale-row .meta { font-size: 11px; color: var(--light); margin-top: 2px; }
+.sale-row .amt { text-align: right; white-space: nowrap; }
+.sale-row .gain { font-size: 11px; color: #2a7d46; }
+.sale-del { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; }
+.sales-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.4rem; }
+.sales-tools button { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 9px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
+</style>
 </head>
 <body>
 
@@ -771,7 +791,10 @@
         <h2>Panel de administración</h2>
         <div style="font-size:11px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; margin-top:4px;">ESHARA AROMAS</div>
       </div>
-      <button class="admin-close" onclick="closeAdmin()">✕</button>
+      <div style="display:flex;align-items:center;gap:18px;">
+        <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openSales()">Ventas</button>
+        <button class="admin-close" onclick="closeAdmin()">✕</button>
+      </div>
     </div>
     <div class="admin-body">
       <div class="admin-section-title">Franja de anuncio</div>
@@ -922,6 +945,55 @@
 </div>
 
 <!-- SHARE MODAL -->
+<div class="edit-overlay" id="sale-overlay">
+  <div class="edit-backdrop" onclick="closeSaleModal()"></div>
+  <div class="edit-modal">
+    <h3>Registrar venta</h3>
+    <div id="sale-product-title" style="font-size:14px;color:var(--mid);margin:-0.9rem 0 1.2rem;"></div>
+    <div class="admin-form">
+      <div class="admin-field"><label>Presentación</label><select id="sale-pres" onchange="saleFillPrices()"></select></div>
+      <div class="admin-row">
+        <div class="admin-field"><label>Cantidad</label><input type="number" id="sale-qty" value="1" min="1" inputmode="numeric"></div>
+        <div class="admin-field"><label>Fecha</label><input type="date" id="sale-date"></div>
+      </div>
+      <div id="sale-bottle-box" style="display:none;">
+        <div class="sales-h" style="margin:0.4rem 0 0.6rem;">Costo del decant (se calcula solo)</div>
+        <div class="admin-row">
+          <div class="admin-field"><label>Costo del frasco (Gs.)</label><input type="number" id="sale-bottle-cost" inputmode="numeric" oninput="saleCalcCost()" placeholder="Ej: 350000"></div>
+          <div class="admin-field"><label>Tamaño del frasco (ml)</label><input type="number" id="sale-bottle-ml" inputmode="numeric" oninput="saleCalcCost()" placeholder="Ej: 100"></div>
+        </div>
+        <div class="admin-field" style="margin-top:0.6rem;"><label>Envase por decant (Gs.)</label><input type="number" id="sale-vial" inputmode="numeric" oninput="saleCalcCost()" placeholder="Atomizador + etiqueta (opcional)"></div>
+        <div class="sales-note" id="sale-cost-hint" style="margin-bottom:0.8rem;"></div>
+      </div>
+      <div class="admin-row">
+        <div class="admin-field"><label>Precio de venta (Gs.)</label><input type="number" id="sale-price" inputmode="numeric"></div>
+        <div class="admin-field"><label>Lo que te costó (Gs.)</label><input type="number" id="sale-cost" inputmode="numeric" placeholder="Opcional"></div>
+      </div>
+      <div class="admin-field"><label>Nombre del cliente</label><input type="text" id="sale-client" placeholder="Ej: María" maxlength="60" autocomplete="off"></div>
+    </div>
+    <div style="font-size:11px;color:var(--light);margin-top:0.8rem;">Precio y costo son por unidad. El costo es opcional, pero sin él no se calcula la ganancia.</div>
+    <button class="edit-save-btn" onclick="saveSale()">Guardar venta</button>
+  </div>
+</div>
+
+<div class="edit-overlay" id="sales-overlay">
+  <div class="edit-backdrop" onclick="closeSales()"></div>
+  <div class="edit-modal" style="width:min(560px,95vw);">
+    <h3>Ventas y ganancias</h3>
+    <div class="sales-periods" id="sales-periods"></div>
+    <div id="sales-summary"></div>
+    <div id="sales-top"></div>
+    <div id="sales-list"></div>
+    <div class="sales-tools">
+      <button onclick="exportSalesCSV()">Descargar para Excel (CSV)</button>
+      <button onclick="exportSalesBackup()">Guardar copia de seguridad</button>
+      <button onclick="document.getElementById('sales-import').click()">Restaurar copia</button>
+      <input type="file" id="sales-import" accept=".json,application/json" style="display:none" onchange="importSales(event)">
+    </div>
+    <div style="font-size:11px;color:var(--light);margin-top:0.8rem;">Las ventas se guardan solo en este dispositivo y no gastan lecturas de Firebase. Guardá una copia de seguridad de vez en cuando.</div>
+  </div>
+</div>
+
 <div class="share-overlay" id="share-overlay">
   <div class="share-backdrop" onclick="closeShareModal()"></div>
   <div class="share-modal">
@@ -1472,7 +1544,8 @@
           <div class="admin-product-name">${p.brand} — ${p.name} ${p.agotado ? '<span style="font-size:10px;background:#888;color:#fff;padding:2px 7px;border-radius:3px;margin-left:4px;">Agotado</span>' : ''}</div>
           <div class="admin-product-price">${isFull(p) ? fullShort(p) + ': Gs. ' + Number(p.priceFull).toLocaleString('es-PY') : '5ml: Gs. ' + Number(p.price5).toLocaleString('es-PY') + ' · 10ml: Gs. ' + Number(p.price10).toLocaleString('es-PY')}</div>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;">
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:176px;">
+          <button class="admin-del-btn" style="background:#0a0a0a;border-color:#0a0a0a;color:#fff;font-size:11px;width:auto;padding:0 10px;" onclick="openSaleModal('${p.firestoreId}')" title="Registrar venta">Vendido</button>
           <button class="admin-del-btn" style="background:#f0f0f0;border-color:#ddd;color:#555;font-size:13px;" onclick="openEditModal('${p.firestoreId}')" title="Editar">✏️</button>
           <button class="admin-del-btn" style="background:#f0f0f0;border-color:#ddd;color:#25D366;font-size:13px;" onclick="openShareModal('${p.firestoreId}')" title="Compartir oferta">📤</button>
           <button class="admin-del-btn" style="${p.agotado ? 'background:#888;color:#fff;border-color:#888;' : 'background:#f0f0f0;border-color:#ddd;color:#555;'}font-size:11px;width:auto;padding:0 8px;" onclick="toggleAgotado('${p.firestoreId}', ${!!p.agotado})" title="Agotado">${p.agotado ? 'Reponer' : 'Agotado'}</button>
@@ -1480,6 +1553,203 @@
         </div>
       </div>`).join('');
   }
+
+  // ── VENTAS (se guardan solo en este dispositivo: no usan Firebase ni gastan lecturas) ──
+  const SALES_KEY = 'ea_ventas_v1';
+  const COSTS_KEY = 'ea_costos_v1';
+  let saleProduct = null;
+  let salesPeriod = 'mes';
+
+  function saleEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function saleGs(n) { return 'Gs. ' + Math.round(n).toLocaleString('es-PY'); }
+  function salePad(n) { return String(n).padStart(2, '0'); }
+  function saleDateStr(d) { return d.getFullYear() + '-' + salePad(d.getMonth() + 1) + '-' + salePad(d.getDate()); }
+  function loadSales() { try { const s = JSON.parse(localStorage.getItem(SALES_KEY) || '[]'); return Array.isArray(s) ? s : []; } catch (e) { return []; } }
+  function storeSales(list) { try { localStorage.setItem(SALES_KEY, JSON.stringify(list)); return true; } catch (e) { alert('No se pudo guardar en este dispositivo.'); return false; } }
+  function loadCosts() { try { return JSON.parse(localStorage.getItem(COSTS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+
+  function saleChip(msg) {
+    const c = document.createElement('div');
+    c.textContent = msg;
+    c.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#0a0a0a;color:#fff;padding:10px 18px;font-size:13px;z-index:900;opacity:0;transition:opacity .25s;';
+    document.body.appendChild(c);
+    requestAnimationFrame(() => { c.style.opacity = '1'; });
+    setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 300); }, 1800);
+  }
+
+  function salePresOptions(p) {
+    if (isFull(p)) return [{ key: 'full', label: fullShort(p), price: p.priceFull }];
+    return [{ key: '5', label: '5 ml', price: p.price5 }, { key: '10', label: '10 ml', price: p.price10 }];
+  }
+
+  window.openSaleModal = function(firestoreId) {
+    const p = products.find(x => x.firestoreId === firestoreId);
+    if (!p) return;
+    saleProduct = p;
+    document.getElementById('sale-product-title').textContent = p.brand + ' — ' + p.name;
+    document.getElementById('sale-pres').innerHTML = salePresOptions(p).map(o => '<option value="' + o.key + '">' + saleEsc(o.label) + '</option>').join('');
+    document.getElementById('sale-qty').value = '1';
+    document.getElementById('sale-date').value = saleDateStr(new Date());
+    document.getElementById('sale-client').value = '';
+    const bottle = loadCosts()[p.firestoreId + '|bottle'] || {};
+    document.getElementById('sale-bottle-cost').value = bottle.cost || '';
+    document.getElementById('sale-bottle-ml').value = bottle.ml || '';
+    document.getElementById('sale-vial').value = bottle.vial || '';
+    saleFillPrices();
+    document.getElementById('sale-overlay').classList.add('open');
+  };
+  window.closeSaleModal = function() { document.getElementById('sale-overlay').classList.remove('open'); };
+
+  window.saleFillPrices = function() {
+    if (!saleProduct) return;
+    const key = document.getElementById('sale-pres').value;
+    const o = salePresOptions(saleProduct).find(x => x.key === key);
+    document.getElementById('sale-price').value = o && o.price ? o.price : '';
+    const decant = !isFull(saleProduct);
+    document.getElementById('sale-bottle-box').style.display = decant ? '' : 'none';
+    const cost = loadCosts()[saleProduct.firestoreId + '|' + key];
+    document.getElementById('sale-cost').value = cost != null ? cost : '';
+    document.getElementById('sale-cost-hint').textContent = '';
+    if (decant) saleCalcCost();
+  };
+
+  // Costo de un decant = (costo del frasco ÷ ml del frasco) × ml del decant + envase
+  window.saleCalcCost = function() {
+    if (!saleProduct || isFull(saleProduct)) return;
+    const ml = parseInt(document.getElementById('sale-pres').value) || 0;
+    const bc = parseFloat(document.getElementById('sale-bottle-cost').value);
+    const bml = parseFloat(document.getElementById('sale-bottle-ml').value);
+    const vial = parseFloat(document.getElementById('sale-vial').value) || 0;
+    const hint = document.getElementById('sale-cost-hint');
+    if (ml && bc > 0 && bml > 0) {
+      const cost = Math.round(bc / bml * ml + vial);
+      document.getElementById('sale-cost').value = cost;
+      hint.textContent = 'Cada ml te cuesta ' + saleGs(bc / bml) + ', así que un decant de ' + ml + ' ml te cuesta ' + saleGs(cost) + (vial ? ' (con el envase)' : '') + '.';
+    } else {
+      hint.textContent = '';
+    }
+  };
+
+  window.saveSale = function() {
+    const p = saleProduct;
+    if (!p) return;
+    const key = document.getElementById('sale-pres').value;
+    const o = salePresOptions(p).find(x => x.key === key);
+    const qty = parseInt(document.getElementById('sale-qty').value);
+    const price = parseInt(document.getElementById('sale-price').value);
+    const costRaw = document.getElementById('sale-cost').value;
+    const cost = costRaw === '' ? null : parseInt(costRaw);
+    const date = document.getElementById('sale-date').value || saleDateStr(new Date());
+    const client = document.getElementById('sale-client').value.trim();
+    if (!qty || qty < 1) { alert('La cantidad tiene que ser 1 o más.'); return; }
+    if (!price || price < 1) { alert('Poné el precio de venta.'); return; }
+    if (cost !== null && (isNaN(cost) || cost < 0)) { alert('El costo no es válido.'); return; }
+    const sale = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, productId: p.firestoreId, brand: p.brand, name: p.name, pres: o ? o.label : '', qty, price, cost, client };
+    const list = loadSales();
+    list.push(sale);
+    if (!storeSales(list)) return;
+    if (cost !== null) {
+      const costs = loadCosts();
+      costs[p.firestoreId + '|' + key] = cost;
+      const bc = parseFloat(document.getElementById('sale-bottle-cost').value);
+      const bml = parseFloat(document.getElementById('sale-bottle-ml').value);
+      if (!isFull(p) && bc > 0 && bml > 0) costs[p.firestoreId + '|bottle'] = { cost: bc, ml: bml, vial: parseFloat(document.getElementById('sale-vial').value) || 0 };
+      try { localStorage.setItem(COSTS_KEY, JSON.stringify(costs)); } catch (e) {}
+    }
+    closeSaleModal();
+    saleChip('Venta registrada ✓');
+  };
+
+  function salesInPeriod(list) {
+    const now = new Date();
+    const today = saleDateStr(now);
+    if (salesPeriod === 'hoy') return list.filter(s => s.date === today);
+    if (salesPeriod === '7') { const d = new Date(now); d.setDate(d.getDate() - 6); const from = saleDateStr(d); return list.filter(s => s.date >= from); }
+    if (salesPeriod === 'mes') { const from = now.getFullYear() + '-' + salePad(now.getMonth() + 1) + '-01'; return list.filter(s => s.date >= from); }
+    return list;
+  }
+
+  function renderSales() {
+    const labels = [['hoy', 'Hoy'], ['7', '7 días'], ['mes', 'Este mes'], ['todo', 'Todo']];
+    document.getElementById('sales-periods').innerHTML = labels.map(([k, l]) => '<button class="' + (salesPeriod === k ? 'active' : '') + '" onclick="setSalesPeriod(\'' + k + '\')">' + l + '</button>').join('');
+    const list = salesInPeriod(loadSales()).sort((a, b) => (b.date + b.id).localeCompare(a.date + a.id));
+    let units = 0, revenue = 0, profit = 0, missing = 0, withCost = 0;
+    list.forEach(s => {
+      units += s.qty; revenue += s.qty * s.price;
+      if (s.cost == null) missing++; else { withCost++; profit += s.qty * (s.price - s.cost); }
+    });
+    document.getElementById('sales-summary').innerHTML =
+      '<div class="sales-summary">' +
+        '<div class="sales-card"><div class="lbl">Vendido</div><div class="val">' + saleGs(revenue) + '</div></div>' +
+        '<div class="sales-card"><div class="lbl">Ganancia</div><div class="val">' + (withCost ? saleGs(profit) : '—') + '</div></div>' +
+        '<div class="sales-card"><div class="lbl">Unidades</div><div class="val">' + units + '</div></div>' +
+        '<div class="sales-card"><div class="lbl">Ventas</div><div class="val">' + list.length + '</div></div>' +
+      '</div>' +
+      (missing ? '<div class="sales-note">' + missing + (missing === 1 ? ' venta no tiene' : ' ventas no tienen') + ' costo y no suma' + (missing === 1 ? '' : 'n') + ' a la ganancia.</div>' : '');
+    const byProd = {};
+    list.forEach(s => { const k = s.brand + ' ' + s.name; byProd[k] = (byProd[k] || 0) + s.qty; });
+    const top = Object.entries(byProd).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    document.getElementById('sales-top').innerHTML = top.length
+      ? '<div class="sales-h">Más vendidos</div>' + top.map(([k, n], i) => '<div class="sale-top-row"><span>' + (i + 1) + '. ' + saleEsc(k) + '</span><span>' + n + (n === 1 ? ' unidad' : ' unidades') + '</span></div>').join('')
+      : '';
+    document.getElementById('sales-list').innerHTML = list.length
+      ? '<div class="sales-h">Detalle</div>' + list.map(s => {
+          const total = s.qty * s.price;
+          const gain = s.cost == null ? '' : '<div class="gain">+' + saleGs(s.qty * (s.price - s.cost)) + '</div>';
+          const dd = s.date.slice(8, 10) + '/' + s.date.slice(5, 7);
+          return '<div class="sale-row"><div><div>' + saleEsc(s.name) + ' · ' + saleEsc(s.pres) + (s.qty > 1 ? ' × ' + s.qty : '') + '</div><div class="meta">' + dd + (s.client ? ' · ' + saleEsc(s.client) : '') + '</div></div><div class="amt"><div>' + saleGs(total) + '</div>' + gain + '</div><button class="sale-del" onclick="deleteSale(\'' + s.id + '\')" title="Borrar venta">✕</button></div>';
+        }).join('')
+      : '<div class="admin-empty" style="margin-top:1rem;">Todavía no hay ventas en este período.</div>';
+  }
+
+  window.openSales = function() { renderSales(); document.getElementById('sales-overlay').classList.add('open'); };
+  window.closeSales = function() { document.getElementById('sales-overlay').classList.remove('open'); };
+  window.setSalesPeriod = function(p) { salesPeriod = p; renderSales(); };
+  window.deleteSale = function(id) {
+    if (!confirm('¿Borrar esta venta?')) return;
+    storeSales(loadSales().filter(s => s.id !== id));
+    renderSales();
+  };
+
+  function saleDownload(filename, text, mime) {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  window.exportSalesCSV = function() {
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = [['fecha', 'cliente', 'producto', 'presentacion', 'cantidad', 'precio_unitario', 'costo_unitario', 'total', 'ganancia']];
+    loadSales().sort((a, b) => a.date.localeCompare(b.date)).forEach(s => rows.push([s.date, s.client, s.brand + ' ' + s.name, s.pres, s.qty, s.price, s.cost == null ? '' : s.cost, s.qty * s.price, s.cost == null ? '' : s.qty * (s.price - s.cost)]));
+    saleDownload('ventas-eshara.csv', '\uFEFF' + rows.map(r => r.map(q).join(',')).join('\n'), 'text/csv;charset=utf-8');
+  };
+  window.exportSalesBackup = function() {
+    saleDownload('copia-ventas-eshara.json', JSON.stringify({ version: 1, sales: loadSales(), costs: loadCosts() }), 'application/json');
+  };
+  window.importSales = function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data || !Array.isArray(data.sales)) throw new Error('formato');
+        const mine = loadSales();
+        const ids = new Set(mine.map(s => s.id));
+        let added = 0;
+        data.sales.forEach(s => { if (s && s.id && !ids.has(s.id) && s.date && s.qty && s.price) { mine.push(s); ids.add(s.id); added++; } });
+        storeSales(mine);
+        if (data.costs && typeof data.costs === 'object') { try { localStorage.setItem(COSTS_KEY, JSON.stringify({ ...data.costs, ...loadCosts() })); } catch (err) {} }
+        renderSales();
+        saleChip(added + (added === 1 ? ' venta restaurada' : ' ventas restauradas'));
+      } catch (err) { alert('Ese archivo no es una copia de seguridad válida.'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+  // ── FIN VENTAS ──
 
   // ── TOGGLE AGOTADO ────────────────────────────────────────
   window.toggleAgotado = async function(firestoreId, isAgotado) {
