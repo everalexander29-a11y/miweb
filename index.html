@@ -892,8 +892,7 @@ body.has-order-bar { padding-bottom: 72px; }
           <div class="ck-field"><label for="ck-carrier">¿Con qué transportadora querés que te lo enviemos? *</label><input type="text" id="ck-carrier" maxlength="80" placeholder="Escribí el nombre de la empresa"></div>
         </div>
         <div id="ck-address-box" style="display:flex;flex-direction:column;gap:12px;">
-          <div class="ck-field"><label for="ck-city">Departamento y ciudad *</label><input type="text" id="ck-city" maxlength="80" placeholder="Ej: Caaguazú, Coronel Oviedo"></div>
-          <div class="ck-field"><label for="ck-address">Barrio, calle y número de casa (obligatorio si es a domicilio)</label><input type="text" id="ck-address" maxlength="140" autocomplete="street-address" placeholder="Ej: Barrio San Blas, calle Mcal. López 123"></div>
+          <div class="ck-field"><label for="ck-address">¿A dónde te lo enviamos? *</label><input type="text" id="ck-address" maxlength="140" autocomplete="street-address" placeholder="Ej: Caaguazú, barrio San Blas, calle Mcal. López 123"></div>
           <div class="ck-field"><label for="ck-ref">Referencia o ubicación de Google Maps (opcional)</label><input type="text" id="ck-ref" maxlength="200" placeholder="Ej: casa blanca frente a la farmacia"></div>
         </div>
         <div class="ck-field"><label for="ck-pay">Forma de pago *</label>
@@ -1687,7 +1686,7 @@ const auth = getAuth(app);
   };
 
   // ── Datos de entrega: se recuerdan en el celular del cliente para su próximo pedido ──
-  const CK_FIELDS = ['ck-name', 'ck-phone', 'ck-ci', 'ck-delivery', 'ck-carrier', 'ck-city', 'ck-address', 'ck-ref', 'ck-pay'];
+  const CK_FIELDS = ['ck-name', 'ck-phone', 'ck-ci', 'ck-delivery', 'ck-carrier', 'ck-address', 'ck-ref', 'ck-pay'];
   let ckLoaded = false;
   function loadCkData() {
     if (ckLoaded) return;
@@ -1721,9 +1720,8 @@ const auth = getAuth(app);
     if (!v('ck-name')) missing.push('nombre y apellido');
     if (!v('ck-phone')) missing.push('teléfono');
     if (!v('ck-ci')) missing.push('número de cédula');
-    if (!retiro && !v('ck-city')) missing.push('departamento y ciudad');
     if (encomienda && !v('ck-carrier')) missing.push('transportadora');
-    if (!retiro && !encomienda && !v('ck-address')) missing.push('dirección');
+    if (!retiro && !v('ck-address')) missing.push('a dónde te lo enviamos');
     if (missing.length) { alert('Falta completar: ' + missing.join(', ') + '.'); return; }
     saveCkData();
     const lines = cart.map(i => `• ${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
@@ -1735,8 +1733,7 @@ const auth = getAuth(app);
       msg += `\nTransportadora: ${v('ck-carrier')}`;
     }
     if (!retiro) {
-      msg += `\nCiudad: ${v('ck-city')}`;
-      if (v('ck-address')) msg += `\nDirección: ${v('ck-address')}`;
+      msg += `\nEnviar a: ${v('ck-address')}`;
       if (v('ck-ref')) msg += `\nReferencia: ${v('ck-ref')}`;
     }
     msg += `\n\n*PAGO*\n${v('ck-pay')}`;
