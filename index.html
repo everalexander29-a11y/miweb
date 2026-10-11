@@ -880,7 +880,7 @@ body.has-order-bar { padding-bottom: 72px; }
         <div class="ck-title">Datos para la entrega</div>
         <div class="ck-field"><label for="ck-name">Nombre y apellido *</label><input type="text" id="ck-name" maxlength="80" autocomplete="name" placeholder="Ej: María González"></div>
         <div class="ck-field"><label for="ck-phone">Teléfono / WhatsApp *</label><input type="tel" id="ck-phone" maxlength="20" autocomplete="tel" placeholder="Ej: 0981 123 456"></div>
-        <div class="ck-field"><label for="ck-ci">Cédula de identidad (opcional, la piden algunas transportadoras)</label><input type="text" id="ck-ci" maxlength="15" inputmode="numeric" placeholder="Ej: 1.234.567"></div>
+        <div class="ck-field"><label for="ck-ci">Número de cédula de identidad *</label><input type="text" id="ck-ci" maxlength="15" inputmode="numeric" placeholder="Ej: 1.234.567"></div>
         <div class="ck-field"><label for="ck-delivery">¿Cómo querés recibirlo? *</label>
           <select id="ck-delivery" onchange="toggleCkAddress()">
             <option value="Envío a domicilio">Envío a domicilio</option>
@@ -1720,6 +1720,7 @@ const auth = getAuth(app);
     const missing = [];
     if (!v('ck-name')) missing.push('nombre y apellido');
     if (!v('ck-phone')) missing.push('teléfono');
+    if (!v('ck-ci')) missing.push('número de cédula');
     if (!retiro && !v('ck-city')) missing.push('departamento y ciudad');
     if (encomienda && !v('ck-carrier')) missing.push('transportadora');
     if (!retiro && !encomienda && !v('ck-address')) missing.push('dirección');
@@ -1728,7 +1729,7 @@ const auth = getAuth(app);
     const lines = cart.map(i => `• ${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
     let msg = `Hola! Quiero hacer un pedido\n\n*PEDIDO*\n${lines}\n\n*Total: Gs. ${total.toLocaleString('es-PY')}*\n(el costo de envío se confirma por acá)\n\n*DATOS DEL CLIENTE*\nNombre: ${v('ck-name')}\nTeléfono: ${v('ck-phone')}`;
-    if (v('ck-ci')) msg += `\nCédula: ${v('ck-ci')}`;
+    msg += `\nCédula: ${v('ck-ci')}`;
     msg += `\n\n*ENTREGA*\n${delivery}`;
     if (encomienda) {
       msg += `\nTransportadora: ${v('ck-carrier')}`;
