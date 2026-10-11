@@ -474,6 +474,18 @@
 .sale-row .amt { text-align: right; white-space: nowrap; }
 .sale-row .gain { font-size: 11px; color: #2a7d46; }
 .sale-del { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; }
+.ped-card { border: 0.5px solid rgba(0,0,0,0.15); padding: 0.9rem 1rem; margin-bottom: 0.8rem; font-size: 13px; line-height: 1.55; }
+.ped-card.vendido { opacity: 0.6; }
+.ped-card.cancelado { opacity: 0.45; }
+.ped-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 0.4rem; }
+.ped-code { font-weight: 500; letter-spacing: 0.06em; }
+.ped-state { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 8px; background: #f0f0f0; }
+.ped-state.nuevo { background: #0a0a0a; color: #fff; }
+.ped-items { margin: 0.4rem 0; padding: 0.5rem 0; border-top: 0.5px solid rgba(0,0,0,0.08); border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+.ped-meta { color: var(--mid); font-size: 12px; }
+.ped-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.7rem; }
+.ped-actions button, .ped-actions a { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 8px 12px; font-size: 11px; cursor: pointer; font-family: inherit; color: inherit; text-decoration: none; }
+.ped-actions .ped-ok { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
 .sales-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.4rem; }
 .sales-tools button { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 9px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
 </style>
@@ -924,6 +936,7 @@ body.has-order-bar { padding-bottom: 72px; }
         <div style="font-size:11px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; margin-top:4px;">ESHARA AROMAS</div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
+        <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openPedidos()">Pedidos</button>
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openSales()">Ventas</button>
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openVideos()">Videos</button>
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);" onclick="adminLogout()">Salir</button>
@@ -1181,6 +1194,16 @@ body.has-order-bar { padding-bottom: 72px; }
   </div>
 </div>
 
+<div class="edit-overlay" id="pedidos-overlay">
+  <div class="edit-backdrop" onclick="closePedidos()"></div>
+  <div class="edit-modal" style="width:min(560px,95vw);">
+    <h3>Pedidos recibidos</h3>
+    <div id="pedidos-list"></div>
+    <div class="sales-tools"><button onclick="openPedidos()">Actualizar</button></div>
+    <div style="font-size:11px;color:var(--light);margin-top:0.8rem;">Los pedidos se leen de Firebase solo cuando abrís este panel (o tocás Actualizar). Al tocar "Confirmar venta" se cargan solos en Ventas, con el costo si ya lo habías guardado antes.</div>
+  </div>
+</div>
+
 <div class="share-overlay" id="share-overlay">
   <div class="share-backdrop" onclick="closeShareModal()"></div>
   <div class="share-modal">
@@ -1245,7 +1268,7 @@ body.has-order-bar { padding-bottom: 72px; }
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, updateDoc, getDoc, setDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCTiZAtojbN6yjTKIOe86MXBK-AzGb55yk",
@@ -1724,9 +1747,21 @@ const auth = getAuth(app);
     if (!retiro && !v('ck-address')) missing.push('a dónde te lo enviamos');
     if (missing.length) { alert('Falta completar: ' + missing.join(', ') + '.'); return; }
     saveCkData();
+    const orderRef = doc(collection(db, 'pedidos'));
+    const code = orderRef.id.slice(0, 5).toUpperCase();
+    const orderTotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    // Se guarda en segundo plano: si falla, el pedido igual se envía por WhatsApp
+    setDoc(orderRef, {
+      createdAt: Date.now(), estado: 'nuevo', codigo: code,
+      nombre: v('ck-name'), telefono: v('ck-phone'), cedula: v('ck-ci'),
+      entrega: delivery, transportadora: encomienda ? v('ck-carrier') : '',
+      destino: retiro ? '' : v('ck-address'), referencia: retiro ? '' : v('ck-ref'),
+      pago: v('ck-pay'), notas: v('ck-notes'), total: orderTotal,
+      items: cart.map(i => ({ productId: i.firestoreId, brand: i.brand, name: i.name, pres: i.label || (i.ml + ' ml'), presKey: i.label ? 'full' : String(i.ml), qty: i.qty, price: i.price }))
+    }).catch(err => console.warn('No se pudo guardar el pedido en Firebase', err));
     const lines = cart.map(i => `• ${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    let msg = `Hola! Quiero hacer un pedido\n\n*PEDIDO*\n${lines}\n\n*Total: Gs. ${total.toLocaleString('es-PY')}*\n(el costo de envío se confirma por acá)\n\n*DATOS DEL CLIENTE*\nNombre: ${v('ck-name')}\nTeléfono: ${v('ck-phone')}`;
+    let msg = `Hola! Quiero hacer un pedido\n\n*PEDIDO #${code}*\n${lines}\n\n*Total: Gs. ${total.toLocaleString('es-PY')}*\n(el costo de envío se confirma por acá)\n\n*DATOS DEL CLIENTE*\nNombre: ${v('ck-name')}\nTeléfono: ${v('ck-phone')}`;
     msg += `\nCédula: ${v('ck-ci')}`;
     msg += `\n\n*ENTREGA*\n${delivery}`;
     if (encomienda) {
@@ -2111,6 +2146,71 @@ const auth = getAuth(app);
       e.target.value = '';
     };
     reader.readAsText(file);
+  };
+
+  // ── PEDIDOS RECIBIDOS (vienen de la página, se leen solo al abrir el panel) ──
+  let pedidosCache = [];
+  function pedWa(tel) {
+    let d = String(tel || '').replace(/\D/g, '');
+    if (d.startsWith('0')) d = '595' + d.slice(1);
+    return d ? 'https://wa.me/' + d : '';
+  }
+  function renderPedidos() {
+    const box = document.getElementById('pedidos-list');
+    if (!pedidosCache.length) { box.innerHTML = '<div class="admin-empty" style="margin-top:1rem;">Todavía no hay pedidos.</div>'; return; }
+    box.innerHTML = pedidosCache.map(o => {
+      const d = new Date(o.createdAt || 0);
+      const when = salePad(d.getDate()) + '/' + salePad(d.getMonth() + 1) + ' ' + salePad(d.getHours()) + ':' + salePad(d.getMinutes());
+      const items = (o.items || []).map(i => '<div>' + saleEsc(i.brand + ' ' + i.name) + ' · ' + saleEsc(i.pres) + ' × ' + i.qty + ' — ' + saleGs(i.price * i.qty) + '</div>').join('');
+      const ent = [o.entrega, o.transportadora ? 'Transportadora: ' + o.transportadora : '', o.destino ? 'Enviar a: ' + o.destino : '', o.referencia ? 'Ref: ' + o.referencia : ''].filter(Boolean).map(saleEsc).join('<br>');
+      const wa = pedWa(o.telefono);
+      const est = o.estado || 'nuevo';
+      return '<div class="ped-card ' + est + '">' +
+        '<div class="ped-head"><span class="ped-code">#' + saleEsc(o.codigo || o.id.slice(0, 5).toUpperCase()) + ' · ' + when + '</span><span class="ped-state ' + est + '">' + est + '</span></div>' +
+        '<div><strong>' + saleEsc(o.nombre) + '</strong> · ' + saleEsc(o.telefono) + (o.cedula ? ' · CI ' + saleEsc(o.cedula) : '') + '</div>' +
+        '<div class="ped-items">' + items + '<div style="margin-top:4px;"><strong>Total ' + saleGs(o.total || 0) + '</strong> · ' + saleEsc(o.pago) + '</div></div>' +
+        '<div class="ped-meta">' + ent + (o.notas ? '<br>Notas: ' + saleEsc(o.notas) : '') + '</div>' +
+        '<div class="ped-actions">' +
+          (est === 'nuevo' ? '<button class="ped-ok" onclick="confirmPedido(\'' + o.id + '\')">Confirmar venta</button><button onclick="cancelPedido(\'' + o.id + '\')">Cancelar</button>' : '') +
+          (wa ? '<a href="' + wa + '" target="_blank" rel="noopener">WhatsApp cliente</a>' : '') +
+          '<button onclick="deletePedido(\'' + o.id + '\')">Borrar</button>' +
+        '</div></div>';
+    }).join('');
+  }
+  window.openPedidos = async function() {
+    document.getElementById('pedidos-overlay').classList.add('open');
+    document.getElementById('pedidos-list').innerHTML = '<div class="admin-empty" style="margin-top:1rem;">Cargando pedidos...</div>';
+    try {
+      const snap = await getDocs(query(collection(db, 'pedidos'), orderBy('createdAt', 'desc'), limit(40)));
+      pedidosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderPedidos();
+    } catch (e) {
+      document.getElementById('pedidos-list').innerHTML = '<div class="admin-empty" style="margin-top:1rem;">No se pudieron leer los pedidos. Revisá que estés logueado y que las reglas de Firebase permitan leer "pedidos".</div>';
+    }
+  };
+  window.closePedidos = function() { document.getElementById('pedidos-overlay').classList.remove('open'); };
+  window.confirmPedido = async function(id) {
+    const o = pedidosCache.find(x => x.id === id);
+    if (!o || o.estado === 'vendido') return;
+    const costs = loadCosts();
+    const date = saleDateStr(new Date());
+    const list = loadSales();
+    (o.items || []).forEach(i => {
+      const c = costs[i.productId + '|' + i.presKey];
+      list.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, productId: i.productId, brand: i.brand, name: i.name, pres: i.pres, qty: i.qty, price: i.price, cost: typeof c === 'number' ? c : null, client: o.nombre || '' });
+    });
+    if (!storeSales(list)) return;
+    try { await updateDoc(doc(db, 'pedidos', id), { estado: 'vendido' }); o.estado = 'vendido'; } catch (e) { alert('La venta se cargó, pero no se pudo marcar el pedido como vendido en Firebase.'); }
+    renderPedidos();
+    saleChip('Venta cargada ✓');
+  };
+  window.cancelPedido = async function(id) {
+    if (!confirm('¿Cancelar este pedido?')) return;
+    try { await updateDoc(doc(db, 'pedidos', id), { estado: 'cancelado' }); const o = pedidosCache.find(x => x.id === id); if (o) o.estado = 'cancelado'; renderPedidos(); } catch (e) { alert('No se pudo cancelar.'); }
+  };
+  window.deletePedido = async function(id) {
+    if (!confirm('¿Borrar este pedido? No se puede deshacer.')) return;
+    try { await deleteDoc(doc(db, 'pedidos', id)); pedidosCache = pedidosCache.filter(x => x.id !== id); renderPedidos(); } catch (e) { alert('No se pudo borrar.'); }
   };
   // ── FIN VENTAS ──
 
