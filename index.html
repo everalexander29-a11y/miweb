@@ -551,6 +551,9 @@ body.has-order-bar { padding-bottom: 72px; }
   .admin-header > div:last-child { width: 100%; justify-content: space-between !important; }
 }
 </style>
+<style>
+.link-btn { background: none; border: none; border-bottom: 1px solid #0a0a0a; font: inherit; color: #0a0a0a; cursor: pointer; padding: 0; font-style: normal; }
+</style>
 </head>
 <body>
 
@@ -618,7 +621,7 @@ body.has-order-bar { padding-bottom: 72px; }
     </div>
   </div>
   <div class="filter-bar">
-    <button class="filter-btn active" data-filter="todos">Todos</button>
+    <button class="filter-btn active" data-filter="todos">Decants</button>
     <button class="filter-btn" data-filter="masculino">Masculinos</button>
     <button class="filter-btn" data-filter="femenino">Femeninos</button>
     <button class="filter-btn" data-filter="unisex">Unisex</button>
@@ -1375,13 +1378,13 @@ const auth = getAuth(app);
     }
   }
 
-  // Fila de ofertas y más pedidos (solo en la vista "Todos", sin búsqueda)
+  // Fila de ofertas y más pedidos: en "Decants" muestra decants y en "Perfumes completos" muestra completos (sin búsqueda)
   function renderFeatured() {
     const box = document.getElementById('featured');
     const row = document.getElementById('featured-row');
     if (!box || !row) return;
-    const items = (activeFilter === 'todos' && !searchQuery)
-      ? products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot')).slice(0, 10)
+    const items = ((activeFilter === 'todos' || activeFilter === 'completos') && !searchQuery)
+      ? products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot') && (activeFilter === 'completos' ? isFull(p) : !isFull(p))).slice(0, 10)
       : [];
     if (!items.length) { box.style.display = 'none'; row.innerHTML = ''; return; }
     row.innerHTML = items.map(p => {
@@ -1393,6 +1396,12 @@ const auth = getAuth(app);
     }).join('');
     box.style.display = '';
   }
+
+  window.switchSection = function(f) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+    renderCatalogue();
+  };
 
   window.showMore = function() { visibleCount += PAGE_SIZE; renderCatalogue(); };
 
@@ -1418,23 +1427,29 @@ const auth = getAuth(app);
   function renderCatalogue() {
     renderFeatured();
     const grid = document.getElementById('catalogue-grid');
+    const matchesSearch = p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.brand.toLowerCase().includes(searchQuery) ||
+      (p.notes || '').toLowerCase().includes(searchQuery);
     let filtered;
     if (activeFilter === 'completos') filtered = products.filter(isFull);
-    else if (activeFilter === 'todos') filtered = searchQuery ? products : products.filter(p => !isFull(p));
+    else if (activeFilter === 'todos') filtered = products.filter(p => !isFull(p));
     else filtered = products.filter(p => !isFull(p) && p.category === activeFilter);
-    if (searchQuery) {
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(searchQuery) ||
-        p.brand.toLowerCase().includes(searchQuery) ||
-        (p.notes || '').toLowerCase().includes(searchQuery)
-      );
+    if (searchQuery) filtered = filtered.filter(matchesSearch);
+    let emptySearchMsg = 'Sin resultados.';
+    if (searchQuery && !filtered.length) {
+      const inCompletos = activeFilter === 'completos';
+      const n = products.filter(p => (inCompletos ? !isFull(p) : isFull(p)) && matchesSearch(p)).length;
+      if (n > 0) emptySearchMsg = inCompletos
+        ? 'Sin resultados en perfumes completos. Hay ' + n + ' en <button class="link-btn" onclick="switchSection(\'todos\')">Decants</button>.'
+        : 'Sin resultados en decants. Hay ' + n + ' en <button class="link-btn" onclick="switchSection(\'completos\')">Perfumes completos</button>.';
     }
     const pageKey = activeFilter + '|' + searchQuery;
     if (pageKey !== lastPageKey) { visibleCount = PAGE_SIZE; lastPageKey = pageKey; }
     const moreWrap = document.getElementById('load-more-wrap');
     if (!filtered.length) {
       if (moreWrap) moreWrap.style.display = 'none';
-      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? 'Sin resultados.' : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : 'No hay productos en esta categoría todavía.') + '</p>';
+      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? emptySearchMsg : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : 'No hay productos en esta categoría todavía.') + '</p>';
       return;
     }
     grid.innerHTML = filtered.slice(0, visibleCount).map((p) => {
@@ -1466,7 +1481,7 @@ const auth = getAuth(app);
     }
     if (adminMode) document.body.classList.add('admin-mode');
     const counter = document.getElementById('product-counter');
-    if (counter) { const n = products.filter(x => !isFull(x)).length; counter.textContent = n + ' fragancia' + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : ''); }
+    if (counter) { const full = activeFilter === 'completos'; const n = products.filter(x => isFull(x) === full).length; counter.textContent = n + (full ? ' perfume' : ' fragancia') + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : ''); }
   }
 
   window.openDetail = function(firestoreId) {
