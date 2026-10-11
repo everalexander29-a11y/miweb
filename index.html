@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eshara Aromas</title>
+<title>Eshara Aromas | Perfumes y decants originales en Paraguay</title>
 <meta name="description" content="Perfumes y decants originales en Paraguay. Elegí tu aroma, armá tu pedido y comprá por WhatsApp. Envíos a todo el país.">
 <meta name="google-site-verification" content="3-KzayYbBgwcSwfS1o1ggq_yt8_VmHtF0TCBtZAEJno" />
 <meta name="theme-color" content="#0a0a0a">
@@ -470,6 +470,87 @@
 .sales-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.4rem; }
 .sales-tools button { border: 1px solid rgba(0,0,0,0.2); background: #fff; padding: 9px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
 </style>
+<style>
+/* ===== FILA DE OFERTAS, VER MÁS, BARRA DE PEDIDO, ENLACE DECANT/FRASCO ===== */
+.featured { max-width: 1120px; margin: 0 auto 2.2rem; }
+.featured-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); margin: 0 0 0.8rem; }
+.featured-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+.feat-card { flex: 0 0 150px; scroll-snap-align: start; border: 1px solid rgba(0,0,0,0.09); background: #fff; cursor: pointer; }
+.feat-card .fimg { position: relative; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; background: #fff; }
+.feat-card .fimg img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.feat-card .fi { padding: 0.5rem 0.65rem 0.75rem; }
+.feat-card .fb { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); }
+.feat-card .fn { font-family: 'Cormorant Garamond', serif; font-size: 16px; line-height: 1.15; margin: 2px 0 4px; }
+.feat-card .fp { font-size: 12px; }
+@media (min-width: 601px) { .feat-card { flex-basis: 190px; } }
+.btn-more { border: 1px solid #0a0a0a; background: transparent; color: #0a0a0a; padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: background .2s, color .2s; }
+.btn-more:hover { background: #0a0a0a; color: #fff; }
+.order-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: #0a0a0a; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateY(110%); transition: transform .3s ease; }
+.order-bar.show { transform: translateY(0); }
+.order-bar .ob-info { display: flex; flex-direction: column; font-size: 12px; letter-spacing: 0.04em; color: rgba(255,255,255,0.7); }
+.order-bar .ob-info strong { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; color: #fff; }
+.order-bar button { background: #fff; color: #0a0a0a; border: none; padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
+body.has-order-bar { padding-bottom: 72px; }
+.detail-cross { margin-top: 1.2rem; font-size: 13px; }
+.detail-cross button { background: none; border: none; border-bottom: 1px solid #0a0a0a; padding: 0 0 2px; cursor: pointer; font: inherit; color: #0a0a0a; text-align: left; }
+</style>
+<style>
+/* ===== SEGUINOS, AGRADECIMIENTO, COMPARTIR TIENDA ===== */
+.follow { background: var(--charcoal); color: #fff; text-align: center; padding: 64px 1.25rem; }
+.follow .section-tag { color: rgba(255,255,255,0.45); }
+.follow h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 48px); font-weight: 300; line-height: 1.15; color: #fff; }
+.follow p { color: rgba(255,255,255,0.55); max-width: 420px; margin: 1rem auto 2rem; font-size: 15px; line-height: 1.8; }
+.follow-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.follow-btn { display: inline-flex; align-items: center; gap: 10px; color: #fff; border: 1px solid rgba(255,255,255,0.35); padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; transition: all .2s; }
+.follow-btn:hover { background: #fff; color: #0a0a0a; border-color: #fff; }
+.follow-btn svg, .thanks-btn svg { width: 16px; height: 16px; }
+.thanks-btn { display: inline-flex; align-items: center; gap: 9px; color: #0a0a0a; border: 1px solid rgba(0,0,0,0.25); padding: 12px 22px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; transition: all .2s; }
+.thanks-btn:hover { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+.share-store { background: none; border: none; border-bottom: 1px solid #777; color: #555; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.08em; cursor: pointer; padding: 0 0 2px; }
+.share-store:hover { color: #0a0a0a; border-color: #0a0a0a; }
+</style>
+<style>
+/* ===== Sección final unificada ===== */
+.follow .btn-wa { background: #fff; color: #0a0a0a; }
+.follow .btn-wa:hover { background: #d0d0d0; }
+.follow .share-store { color: rgba(255,255,255,0.6); border-bottom-color: rgba(255,255,255,0.35); }
+.follow .share-store:hover { color: #fff; border-color: #fff; }
+.follow .contact-info-item { color: rgba(255,255,255,0.45); }
+.follow .contact-info-item strong { color: #fff; }
+</style>
+<style>
+/* ===== CALENDARIO DE VIDEOS (panel) ===== */
+.vid-progress { height: 4px; background: #e8e8e8; margin: 0.2rem 0 0.4rem; }
+.vid-progress > div { height: 100%; background: #0a0a0a; }
+.vid-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 1rem 0 0.4rem; }
+.vid-nav button { background: #fff; border: 1px solid rgba(0,0,0,0.2); width: 38px; height: 38px; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+.vid-nav button:disabled { opacity: 0.3; cursor: default; }
+.vid-nav > div { text-align: center; }
+.vid-week { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); }
+.vid-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.15; margin-top: 2px; }
+.vid-block { margin: 1rem 0 0; }
+.vid-block .lbl { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); margin-bottom: 4px; }
+.vid-block .txt { font-size: 14px; line-height: 1.65; }
+.vid-block .note { font-size: 11px; color: var(--light); margin-top: 3px; }
+.ph { background: #f3ecd9; padding: 0 3px; }
+.vid-actions { margin-top: 1.3rem; }
+.vid-chips { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 1.3rem; }
+.vid-chip { aspect-ratio: 1 / 1; border: 1px solid rgba(0,0,0,0.2); background: #fff; font-size: 11px; cursor: pointer; padding: 0; font-family: inherit; }
+.vid-chip.done { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+.vid-chip.cur { outline: 2px solid var(--gold); outline-offset: 1px; }
+.vid-reset { background: none; border: none; color: #999; font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 0.8rem; padding: 0; }
+.vid-guide { margin-top: 1.2rem; font-size: 13px; line-height: 1.6; }
+.vid-guide summary { cursor: pointer; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); }
+.vid-guide ul { margin: 0.6rem 0 0; padding-left: 1.1rem; }
+.vid-guide li { margin-bottom: 0.35rem; }
+</style>
+<style>
+/* ===== Cabecera del panel en celular: los botones pasan a una fila propia ===== */
+@media (max-width: 600px) {
+  .admin-header { flex-wrap: wrap; row-gap: 14px; padding: 1.2rem 1.25rem; }
+  .admin-header > div:last-child { width: 100%; justify-content: space-between !important; }
+}
+</style>
 </head>
 <body>
 
@@ -543,8 +624,15 @@
     <button class="filter-btn" data-filter="unisex">Unisex</button>
     <button class="filter-btn" data-filter="completos">Perfumes completos</button>
   </div>
+  <div class="featured" id="featured" style="display:none;">
+    <div class="featured-title">Ofertas y más pedidos</div>
+    <div class="featured-row" id="featured-row"></div>
+  </div>
   <div class="catalogue-grid" id="catalogue-grid">
     <p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">Cargando productos...</p>
+  </div>
+  <div id="load-more-wrap" style="display:none;text-align:center;margin:2rem 0 0;">
+    <button class="btn-more" id="load-more-btn" onclick="showMore()">Ver más</button>
   </div>
 </section>
 
@@ -642,26 +730,27 @@
 </section>
 
 <!-- CONTACT -->
-<section class="contact" id="contacto">
-  <span class="section-tag">Contacto</span>
-  <h2>¿Listo para tu primer decant?</h2>
-  <p>Escribinos y te ayudamos a elegir.</p>
-  <div class="contact-btns">
+<section class="follow" id="contacto">
+  <span id="seguinos"></span>
+  <span class="section-tag">Comunidad</span>
+  <h2>Seguinos y no te pierdas nada</h2>
+  <p>Novedades, ofertas y reseñas de nuestros perfumes.</p>
+  <div class="follow-btns">
+    <a href="https://www.instagram.com/eshara_aromas" target="_blank" rel="noopener" class="follow-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none"/></svg>Instagram</a>
+    <a href="https://www.tiktok.com/@eshara_aromas" target="_blank" rel="noopener" class="follow-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
+  </div>
+  <div class="follow-btns" style="margin-top:12px;">
     <a href="https://wa.me/595982413137" class="btn-wa" target="_blank">Escribir por WhatsApp</a>
-    <a href="#catalogo" class="btn-ig">Ver catálogo</a>
   </div>
-  <div class="social-row">
-    <a href="https://www.instagram.com/eshara_aromas" target="_blank" rel="noopener" class="social-link"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none"/></svg>Instagram</a>
-    <a href="https://www.tiktok.com/@eshara_aromas" target="_blank" rel="noopener" class="social-link"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
-  </div>
-  <div class="contact-info">
+  <div style="margin-top:1.5rem;"><button class="share-store" onclick="compartirTienda()">Compartir esta tienda con un amigo</button></div>
+  <div class="contact-info" style="margin-top:2.5rem;">
     <div class="contact-info-item"><strong>Envíos</strong>Todo el país</div>
     <div class="contact-info-item"><strong>Atención</strong>Lun–Sáb 9 a 21hs</div>
     <div class="contact-info-item"><strong>Medios de pago</strong>Transferencia · Efectivo</div>
   </div>
 </section>
 
-<footer><div class="footer-social"><a href="https://www.instagram.com/eshara_aromas" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none"/></svg></a><a href="https://www.tiktok.com/@eshara_aromas" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></div><p>© 2026 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
+<footer><p>© 2026 <em>Eshara Aromas</em> &nbsp;·&nbsp; Todos los derechos reservados &nbsp;·&nbsp; Fragancias 100% originales</p></footer>
 
 <!-- PRODUCT DETAIL -->
 <div id="product-detail" style="display:none; position:fixed; inset:0; background:#fff; z-index:200; overflow-y:auto;">
@@ -724,9 +813,11 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:0.75rem;">
-        <button onclick="addToCart()" style="background:#0a0a0a; color:#fff; border:none; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#0a0a0a'">Agregar al carrito</button>
+        <button id="detail-add-btn" onclick="addToCart()" style="background:#0a0a0a; color:#fff; border:none; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#0a0a0a'">Agregar al carrito</button>
         <button onclick="closeDetail()" style="background:transparent; color:#0a0a0a; border:0.5px solid #0a0a0a; padding:18px; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#0a0a0a';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#0a0a0a'">Seguir viendo</button>
       </div>
+
+      <div id="detail-cross" class="detail-cross"></div>
 
       <!-- SIMILAR PRODUCTS -->
       <div id="similar-section" style="margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid rgba(0,0,0,0.08);">
@@ -793,8 +884,9 @@
         <h2>Panel de administración</h2>
         <div style="font-size:11px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; margin-top:4px;">ESHARA AROMAS</div>
       </div>
-      <div style="display:flex;align-items:center;gap:18px;">
+      <div style="display:flex;align-items:center;gap:14px;">
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openSales()">Ventas</button>
+        <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.8);" onclick="openVideos()">Videos</button>
         <button class="admin-close" style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);" onclick="adminLogout()">Salir</button>
         <button class="admin-close" onclick="closeAdmin()">✕</button>
       </div>
@@ -948,6 +1040,44 @@
 </div>
 
 <!-- SHARE MODAL -->
+<div class="order-bar" id="order-bar">
+  <div class="ob-info"><span id="ob-count">0 productos</span><strong id="ob-total">Gs. 0</strong></div>
+  <button onclick="openCart()">Ver pedido</button>
+</div>
+
+<div class="edit-overlay" id="thanks-overlay">
+  <div class="edit-backdrop" onclick="closeThanks()"></div>
+  <div class="edit-modal" style="width:min(420px,95vw);text-align:center;">
+    <h3>¡Gracias por tu pedido!</h3>
+    <p style="font-size:14px;color:var(--mid);line-height:1.7;margin:-0.4rem 0 1.4rem;">Te respondemos por WhatsApp para confirmar. Mientras tanto, seguinos para ver novedades, ofertas y reseñas.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem;">
+      <a href="https://www.instagram.com/eshara_aromas" target="_blank" rel="noopener" class="thanks-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none"/></svg>Instagram</a>
+      <a href="https://www.tiktok.com/@eshara_aromas" target="_blank" rel="noopener" class="thanks-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
+    </div>
+    <button class="edit-cancel-btn" onclick="closeThanks()">Seguir mirando</button>
+  </div>
+</div>
+
+<div class="edit-overlay" id="videos-overlay">
+  <div class="edit-backdrop" onclick="closeVideos()"></div>
+  <div class="edit-modal" style="width:min(560px,95vw);">
+    <h3>Calendario de videos</h3>
+    <div id="videos-body"></div>
+    <details class="vid-guide">
+      <summary>Guía rápida</summary>
+      <ul>
+        <li><strong>Formato:</strong> video vertical de 15 a 30 segundos, con luz natural y el fondo ordenado.</li>
+        <li><strong>Estructura:</strong> gancho en los primeros 2 segundos, contenido y cierre.</li>
+        <li><strong>Texto en pantalla:</strong> poné siempre el título escrito o subtítulos, porque mucha gente mira sin sonido.</li>
+        <li><strong>Dónde subirlo:</strong> el mismo video a TikTok, Reels y Estados de WhatsApp.</li>
+        <li><strong>Hashtags:</strong> de 3 a 5, por ejemplo #perfumesparaguay #decants #perfumesoriginales #fragancias.</li>
+        <li><strong>Honestidad:</strong> hablá solo de lo que probaste y no muestres nada que no puedas respaldar.</li>
+      </ul>
+    </details>
+    <button class="edit-cancel-btn" onclick="closeVideos()">Cerrar</button>
+  </div>
+</div>
+
 <div class="edit-overlay" id="login-overlay">
   <div class="edit-backdrop" onclick="closeLogin()"></div>
   <div class="edit-modal" style="width:min(420px,95vw);">
@@ -1105,6 +1235,9 @@ const auth = getAuth(app);
   let tapCount = 0;
   let tapTimer = null;
   let activeFilter = 'todos';
+  const PAGE_SIZE = 12;
+  let visibleCount = PAGE_SIZE;
+  let lastPageKey = '';
   let searchQuery = '';
   let cart = [];
   let selectedStars = 5;
@@ -1242,7 +1375,48 @@ const auth = getAuth(app);
     }
   }
 
+  // Fila de ofertas y más pedidos (solo en la vista "Todos", sin búsqueda)
+  function renderFeatured() {
+    const box = document.getElementById('featured');
+    const row = document.getElementById('featured-row');
+    if (!box || !row) return;
+    const items = (activeFilter === 'todos' && !searchQuery)
+      ? products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot')).slice(0, 10)
+      : [];
+    if (!items.length) { box.style.display = 'none'; row.innerHTML = ''; return; }
+    row.innerHTML = items.map(p => {
+      const label = p.badge === 'sale' ? 'Oferta' : 'Mas pedido';
+      const img = p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy">` : '<div class="product-img-placeholder"></div>';
+      const price = isFull(p) ? p.priceFull : p.price5;
+      const txt = isFull(p) ? ('Gs. ' + Number(price).toLocaleString('es-PY')) : ('Desde Gs. ' + Number(price).toLocaleString('es-PY'));
+      return `<div class="feat-card" onclick="openDetail('${p.firestoreId}')"><div class="fimg"><span class="badge badge-${p.badge}" style="top:8px;left:8px;font-size:8.5px;padding:4px 8px;">${label}</span>${img}</div><div class="fi"><div class="fb">${p.brand}</div><div class="fn">${p.name}</div><div class="fp">${txt}</div></div></div>`;
+    }).join('');
+    box.style.display = '';
+  }
+
+  window.showMore = function() { visibleCount += PAGE_SIZE; renderCatalogue(); };
+
+  window.notifyMe = function(firestoreId) {
+    const p = products.find(x => x.firestoreId === firestoreId);
+    if (!p) return;
+    const msg = 'Hola! Me avisan cuando vuelva ' + p.brand + ' ' + p.name + '? Gracias';
+    window.open('https://wa.me/595982413137?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  function normName(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  function renderCross(p) {
+    const el = document.getElementById('detail-cross');
+    if (!el) return;
+    const key = normName(p.brand) + '|' + normName(p.name);
+    const full = isFull(p);
+    const other = products.find(x => x.firestoreId !== p.firestoreId && isFull(x) !== full && x.agotado !== true && (normName(x.brand) + '|' + normName(x.name)) === key);
+    if (!other) { el.innerHTML = ''; return; }
+    const txt = full ? '¿Querés probarlo primero? Ver el decant →' : '¿Lo querés completo? Ver ' + fullShort(other).toLowerCase() + ' →';
+    el.innerHTML = '<button onclick="openDetail(\'' + other.firestoreId + '\')">' + txt + '</button>';
+  }
+
   function renderCatalogue() {
+    renderFeatured();
     const grid = document.getElementById('catalogue-grid');
     let filtered;
     if (activeFilter === 'completos') filtered = products.filter(isFull);
@@ -1255,11 +1429,15 @@ const auth = getAuth(app);
         (p.notes || '').toLowerCase().includes(searchQuery)
       );
     }
+    const pageKey = activeFilter + '|' + searchQuery;
+    if (pageKey !== lastPageKey) { visibleCount = PAGE_SIZE; lastPageKey = pageKey; }
+    const moreWrap = document.getElementById('load-more-wrap');
     if (!filtered.length) {
+      if (moreWrap) moreWrap.style.display = 'none';
       grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? 'Sin resultados.' : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : 'No hay productos en esta categoría todavía.') + '</p>';
       return;
     }
-    grid.innerHTML = filtered.map((p) => {
+    grid.innerHTML = filtered.slice(0, visibleCount).map((p) => {
       const isAgotado = p.agotado === true;
       const badgeLabel = isAgotado ? 'Agotado' : p.badge === 'new' ? 'Nuevo' : p.badge === 'hot' ? 'Mas pedido' : p.badge === 'sale' ? 'Oferta' : '';
       const badgeClass = isAgotado ? 'badge-agotado' : p.badge ? `badge-${p.badge}` : '';
@@ -1276,11 +1454,16 @@ const auth = getAuth(app);
           <div class="product-notes">${noteText(p)}</div>
           <div class="product-footer">
             ${priceHTML}
-            <button class="btn-add" onclick="event.stopPropagation();openDetail('${p.firestoreId}')">${isAgotado ? 'Agotado' : 'Agregar'}</button>
+            <button class="btn-add" onclick="event.stopPropagation();${isAgotado ? `notifyMe('${p.firestoreId}')` : `openDetail('${p.firestoreId}')`}">${isAgotado ? 'Avisame' : 'Agregar'}</button>
           </div>
         </div>
       </div>`;
     }).join('');
+    if (moreWrap) {
+      const rest = filtered.length - visibleCount;
+      moreWrap.style.display = rest > 0 ? '' : 'none';
+      if (rest > 0) document.getElementById('load-more-btn').textContent = 'Ver más (' + rest + ' más)';
+    }
     if (adminMode) document.body.classList.add('admin-mode');
     const counter = document.getElementById('product-counter');
     if (counter) { const n = products.filter(x => !isFull(x)).length; counter.textContent = n + ' fragancia' + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : ''); }
@@ -1299,6 +1482,12 @@ const auth = getAuth(app);
     }
     document.getElementById('detail-qty').textContent = '1';
     renderDetail();
+    renderCross(currentProduct);
+    const addBtn = document.getElementById('detail-add-btn');
+    if (addBtn) {
+      if (currentProduct.agotado === true) { addBtn.textContent = 'Avisame cuando vuelva'; addBtn.onclick = () => notifyMe(currentProduct.firestoreId); }
+      else { addBtn.textContent = 'Agregar al carrito'; addBtn.onclick = () => addToCart(); }
+    }
     renderSimilar(currentProduct);
     renderProductReviews(currentProduct);
     document.getElementById('product-review-form').style.display = 'none';
@@ -1381,6 +1570,14 @@ const auth = getAuth(app);
     const badge = document.getElementById('cart-badge');
     badge.textContent = total;
     badge.classList.toggle('show', total > 0);
+    const amount = cart.reduce((sum, i) => sum + i.qty * i.price, 0);
+    const bar = document.getElementById('order-bar');
+    if (bar) {
+      document.getElementById('ob-count').textContent = total + (total === 1 ? ' producto' : ' productos');
+      document.getElementById('ob-total').textContent = 'Gs. ' + Math.round(amount).toLocaleString('es-PY');
+      bar.classList.toggle('show', total > 0);
+      document.body.classList.toggle('has-order-bar', total > 0);
+    }
   }
 
   function renderCart() {
@@ -1433,7 +1630,9 @@ const auth = getAuth(app);
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
     const msg = `Hola! Quiero hacer un pedido\n\n${lines}\n\nTotal: Gs. ${total.toLocaleString('es-PY')}`;
     window.open('https://wa.me/595982413137?text=' + encodeURIComponent(msg), '_blank');
+    setTimeout(() => { document.getElementById('thanks-overlay').classList.add('open'); }, 700);
   };
+  window.closeThanks = function() { document.getElementById('thanks-overlay').classList.remove('open'); };
 
   // ── ADMIN ─────────────────────────────────────────────────
   window.secretTap = function() {
@@ -1805,6 +2004,107 @@ const auth = getAuth(app);
     reader.readAsText(file);
   };
   // ── FIN VENTAS ──
+
+  // ── CALENDARIO DE VIDEOS (se guarda solo en este dispositivo) ──
+  const VIDEO_KEY = 'ea_videos_v1';
+  const VIDEO_CLOSE = {
+    A: 'Entrá al link de mi bio y pedí el tuyo.',
+    B: 'Escribime por WhatsApp y te ayudo a elegir.',
+    C: 'Seguime para ver el próximo perfume.'
+  };
+  const VIDEO_WEEKS = ['Quién sos y qué es un decant', 'Recomendaciones por ocasión', 'Confianza', 'Comunidad y ventas'];
+  const VIDEO_DAYS = [
+    ['Presentación', 'Vos con un atomizador en la mano y tu catálogo en el celular.', 'Hola, soy [tu nombre] y vendo decants de perfumes originales en Paraguay. Un decant es una porción chica de un perfume para que lo pruebes sin comprar el frasco entero. Acá te voy a mostrar un perfume por día.', 'Decants originales en Paraguay', 'C'],
+    ['¿Qué es un decant?', 'Un frasco grande al lado de un atomizador chico. Si no tenés el frasco, mostrá la pantalla de tu catálogo.', '¿Querés usar un perfume de [precio del frasco] pero no sabés si te va a gustar? Con un decant de 5 ml lo probás por [precio]. Es el mismo perfume, solo que en un envase chico.', 'Probá antes de comprar el frasco', 'A'],
+    ['Perfume del día', 'El perfume que más te piden, con su decant al lado.', 'Perfume del día: [nombre]. Huele a [tres notas]. Es ideal para [ocasión o estación] y, en mi experiencia, [cuánto dura]. El decant de 5 ml cuesta [precio].', 'Perfume del día: [nombre]', 'A'],
+    ['3 perfumes dulces para la noche', 'Tres decants en fila; vas tomando uno por uno.', 'Tres perfumes dulces para salir de noche. Primero, [nombre], que huele a [notas]. Segundo, [nombre]. Y tercero, [nombre]. ¿Cuál te llevarías?', '3 perfumes dulces para la noche', 'B'],
+    ['Detrás de escena: llenando un decant', 'Un primer plano del atomizador llenándose. Podés grabarlo sin hablar, solo con el sonido.', 'Opcional: Así preparo cada decant, uno por uno y a mano.', 'Así preparo tus decants', 'C'],
+    ['¿Son originales?', 'Lo que puedas mostrar de verdad: frascos con su caja, el momento de abrir un pedido a tu proveedor. Hacé este video solo si es cierto y lo podés respaldar.', 'Me preguntan mucho si son originales. Todos mis perfumes son originales y los compro en [lugar o proveedor]. Te muestro [lo que puedas mostrar].', '¿Son originales? Te muestro', 'B'],
+    ['Respondé una pregunta', 'Una captura de la pregunta (de un comentario o mensaje, sin datos personales) y vos respondiendo.', 'Me preguntaron: [pregunta]. La respuesta es esta...', 'La pregunta, escrita en pantalla', 'C'],
+    ['3 perfumes para la oficina', 'Tres decants sobre un escritorio.', 'Tres perfumes para ir a la oficina: no empalagan y se sienten limpios. Uno, [nombre]. Dos, [nombre]. Tres, [nombre]. Los tres en decant desde [precio].', '3 perfumes para la oficina', 'A'],
+    ['3 perfumes frescos para el calor', 'Los tres decants, con algo que dé idea de verano (un vaso con hielo, una ventana luminosa).', 'Con este calor del Paraguay, estos son los tres más frescos que tengo: [nombre], [nombre] y [nombre]. Huelen a [notas frescas].', '3 perfumes frescos para el calor', 'B'],
+    ['Perfume del día', 'Otro perfume distinto al del día 3.', 'Igual que el día 3, con tus propias palabras: nombre, notas, para qué ocasión es, cuánto dura y precio.', 'Perfume del día: [nombre]', 'A'],
+    ['Perfumes accesibles que se sienten elegantes', 'Tres decants y, abajo, sus precios en pantalla.', 'Perfumes que se sienten elegantes y cuyo decant sale menos de [monto]: [nombre], [nombre] y [nombre].', 'Elegantes y accesibles', 'A'],
+    ['Armando un pedido', 'El recorrido completo: elegir el decant, etiquetarlo y empacarlo.', 'Así preparo tu pedido: elijo el decant, lo etiqueto y lo empaco para que te llegue bien cuidado.', 'Así preparo tu pedido', 'B'],
+    ['Decant de 5 ml o de 10 ml', 'Los dos tamaños juntos.', '¿5 o 10 ml? El de 5 te sirve para probar el perfume y saber si es para vos. El de 10 es para usarlo más tiempo o para llevarlo de viaje. Si no sabés cuál, empezá con el de 5.', '¿5 ml o 10 ml?', 'B'],
+    ['Mitos y verdades de los perfumes', 'Vos hablando a cámara, con un cartel de Mito y otro de Verdad.', 'Mito: si dura poco en vos, es un mal perfume. Verdad: depende de tu piel, del clima y del perfume. Mito: guardarlo en el baño está bien. Verdad: el calor y la humedad lo estropean, guardalo lejos del sol.', 'Mitos y verdades', 'C'],
+    ['Reseña de un cliente', 'Una captura del mensaje de un cliente, sin datos personales, o un video corto suyo. Pedile permiso antes.', 'Esto me escribió [nombre o inicial] después de probar [perfume]: [lo que dijo]. Gracias por la confianza.', 'Lo que dicen mis clientes', 'B'],
+    ['Perfume del día', 'Un perfume nuevo, distinto a los anteriores.', 'Nombre, notas, ocasión, duración y precio, con tus palabras.', 'Perfume del día: [nombre]', 'A'],
+    ['Perfumes para regalar', 'Tres decants (o frascos) con un moño o una bolsita de regalo.', 'Tres perfumes para regalar según cuánto quieras gastar: hasta [monto], hasta [monto] y más de [monto]. Si no sabés cuál, escribime y te ayudo.', 'Perfumes para regalar', 'B'],
+    ['Cómo guardar tus perfumes', 'Un frasco en su caja dentro de un cajón.', 'Para que tu perfume te dure más: guardalo lejos del sol y del calor, mejor en su caja o en un cajón, y no en el baño ni en el auto.', 'Cómo cuidar tu perfume', 'C'],
+    ['3 preguntas rápidas', 'Vos a cámara, con cada pregunta escrita en pantalla.', '¿Hacés envíos? Sí, a todo el país. ¿Cómo se paga? Por transferencia o en efectivo. ¿Cuándo atendés? De lunes a sábado, de 9 a 21 horas. Y sumá ¿Cuánto dura? con tu experiencia.', 'Preguntas frecuentes', 'B'],
+    ['Si te gusta este, probá este otro', 'Un perfume caro y, al lado, uno parecido y más accesible.', 'Si te gusta [perfume conocido], probá [perfume parecido]: tiene notas de [notas en común] y el decant sale [precio].', 'Si te gusta este, probá este', 'A'],
+    ['Los 3 más pedidos de la semana', 'Los tres decants, en orden de menos a más pedido. Mirá el resumen en tu panel de Ventas.', 'Los tres perfumes que más me pidieron esta semana: en tercer lugar, [nombre]; en segundo, [nombre]; y en primer lugar, [nombre].', 'Los más pedidos de la semana', 'A'],
+    ['Votación: ¿A o B?', 'Dos decants lado a lado.', '¿Cuál querés que reseñe mañana: [nombre A] o [nombre B]? Votá en los comentarios.', '¿A o B? Votá', 'C'],
+    ['Reseña del perfume ganador', 'El decant que ganó la votación.', 'Ganó [nombre] en la votación. Huele a [notas], es ideal para [ocasión] y el decant cuesta [precio]. Gracias por votar.', 'Ganó [nombre]', 'A'],
+    ['Sorteo de un decant', 'El decant que vas a sortear. Antes de publicarlo, revisá las reglas de promociones de cada red.', 'Sorteo un decant de [nombre]. Para participar: seguime, comentá y etiquetá a un amigo. El sorteo es el [fecha].', 'Sorteo: llevate un decant', 'C'],
+    ['Cómo pedir en 3 pasos', 'La pantalla de tu página, paso por paso.', 'Pedir es fácil. Uno: elegí tu perfume y el tamaño. Dos: agregalo a tu pedido. Tres: enviá el pedido por WhatsApp y yo te confirmo.', 'Pedí en 3 pasos', 'A'],
+    ['Perfume del día: una novedad', 'Un perfume que acabás de incorporar.', 'Novedad: llegó [nombre]. Huele a [notas] y es ideal para [ocasión]. El decant de 5 ml cuesta [precio].', 'Novedad: [nombre]', 'A'],
+    ['Perfumes según tu personalidad', 'Tres decants con un cartel para cada tipo de persona.', 'Si sos tranquilo, tu perfume es [nombre]. Si sos de salir mucho, [nombre]. Y si siempre querés destacar, [nombre].', '¿Qué perfume sos?', 'C'],
+    ['Resumen del mes', 'Los perfumes más vendidos del mes y, si querés, capturas de mensajes de clientes contentos.', 'Este mes me pidieron más que nada [nombre], [nombre] y [nombre]. Gracias a todos los que confiaron en mí.', 'Resumen del mes', 'C'],
+    ['Cómo elijo los perfumes que traigo', 'Vos con tu lista de pedidos o tu panel de Ventas.', 'Para elegir qué perfumes traer, me fijo en lo que más me piden, en las notas que más gustan y en el precio. Si querés que traiga uno, escribime cuál.', '¿Qué perfume querés que traiga?', 'B'],
+    ['Anuncio del mes', 'La oferta o la novedad que quieras destacar.', 'Este mes tengo [oferta o novedad]. Si querés enterarte primero de las ofertas, unite a mi grupo de WhatsApp, el link está en mi bio.', 'Unite al grupo de ofertas', 'A']
+  ];
+  let videoDay = 1;
+
+  function loadVideoDone() { try { const d = JSON.parse(localStorage.getItem(VIDEO_KEY) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
+  function saveVideoDone(d) { try { localStorage.setItem(VIDEO_KEY, JSON.stringify(d)); } catch (e) {} }
+  function videoFirstPending(done) { for (let i = 1; i <= VIDEO_DAYS.length; i++) if (!done[i]) return i; return VIDEO_DAYS.length; }
+  function videoFmt(s) { return saleEsc(s).replace(/\[([^\]]+)\]/g, '<span class="ph">[$1]</span>'); }
+
+  function renderVideos() {
+    const total = VIDEO_DAYS.length;
+    const done = loadVideoDone();
+    const nDone = Object.keys(done).length;
+    const v = VIDEO_DAYS[videoDay - 1];
+    const week = Math.min(4, Math.ceil(videoDay / 7));
+    const closeNote = v[4] === 'A' ? '<div class="note">Si en TikTok todavía no podés poner el link en tu perfil, usá allá el cierre B o el C.</div>' : '';
+    let chips = '';
+    for (let i = 1; i <= total; i++) chips += '<button class="vid-chip' + (done[i] ? ' done' : '') + (i === videoDay ? ' cur' : '') + '" onclick="videoGo(' + i + ')">' + i + '</button>';
+    document.getElementById('videos-body').innerHTML =
+      '<div class="vid-progress"><div style="width:' + (nDone / total * 100) + '%"></div></div>' +
+      '<div class="sales-note">' + nDone + ' de ' + total + ' videos hechos</div>' +
+      '<div class="vid-nav"><button onclick="videoGo(' + (videoDay - 1) + ')"' + (videoDay <= 1 ? ' disabled' : '') + '>←</button>' +
+        '<div><div class="vid-week">Semana ' + week + ': ' + VIDEO_WEEKS[week - 1] + '</div><div class="vid-title">Día ' + videoDay + ': ' + saleEsc(v[0]) + '</div></div>' +
+        '<button onclick="videoGo(' + (videoDay + 1) + ')"' + (videoDay >= total ? ' disabled' : '') + '>→</button></div>' +
+      '<div class="vid-block"><div class="lbl">Qué mostrar</div><div class="txt">' + videoFmt(v[1]) + '</div></div>' +
+      '<div class="vid-block"><div class="lbl">Qué decir</div><div class="txt">' + videoFmt(v[2]) + '</div></div>' +
+      '<div class="vid-block"><div class="lbl">Texto en pantalla</div><div class="txt">' + videoFmt(v[3]) + '</div></div>' +
+      '<div class="vid-block"><div class="lbl">Cierre ' + v[4] + '</div><div class="txt">' + saleEsc(VIDEO_CLOSE[v[4]]) + '</div>' + closeNote + '</div>' +
+      '<div class="vid-actions"><button class="edit-save-btn" onclick="videoToggle()">' + (done[videoDay] ? '✓ Hecho (tocá para desmarcar)' : 'Marcar como hecho') + '</button>' +
+        '<button class="edit-cancel-btn" onclick="videoCopy()">Copiar guion</button></div>' +
+      '<div class="vid-chips">' + chips + '</div>' +
+      '<button class="vid-reset" onclick="videoReset()">Borrar mi avance</button>';
+  }
+
+  window.openVideos = function() {
+    videoDay = videoFirstPending(loadVideoDone());
+    renderVideos();
+    document.getElementById('videos-overlay').classList.add('open');
+  };
+  window.closeVideos = function() { document.getElementById('videos-overlay').classList.remove('open'); };
+  window.videoGo = function(n) { videoDay = Math.min(VIDEO_DAYS.length, Math.max(1, n)); renderVideos(); };
+  window.videoToggle = function() {
+    const d = loadVideoDone();
+    if (d[videoDay]) { delete d[videoDay]; } else { d[videoDay] = true; if (videoDay < VIDEO_DAYS.length) videoDay++; }
+    saveVideoDone(d);
+    renderVideos();
+  };
+  window.videoCopy = function() {
+    const v = VIDEO_DAYS[videoDay - 1];
+    const text = 'Día ' + videoDay + ': ' + v[0] + '\nQué mostrar: ' + v[1] + '\nQué decir: ' + v[2] + '\nTexto en pantalla: ' + v[3] + '\nCierre: ' + VIDEO_CLOSE[v[4]];
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => saleChip('Guion copiado ✓')).catch(() => saleChip('No se pudo copiar'));
+    } else { saleChip('No se pudo copiar'); }
+  };
+  window.videoReset = function() {
+    if (!confirm('¿Borrar el avance del calendario?')) return;
+    saveVideoDone({});
+    videoDay = 1;
+    renderVideos();
+  };
+  // ── FIN CALENDARIO DE VIDEOS ──
+
 
   // ── TOGGLE AGOTADO ────────────────────────────────────────
   window.toggleAgotado = async function(firestoreId, isAgotado) {
@@ -2203,12 +2503,27 @@ const auth = getAuth(app);
   }
 
   // ── COMPARTIR PRODUCTO ────────────────────────────────────
+  function productSlug(x) {
+    const base = (x.brand + '-' + x.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return isFull(x) ? base + '-' + x.tipo : base;
+  }
+
+  window.compartirTienda = function() {
+    const url = location.origin + location.pathname;
+    const msg = 'Mirá Eshara Aromas: decants y perfumes originales en Paraguay\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: 'Eshara Aromas', text: msg }).catch(() => {});
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+  };
+
   window.compartirProducto = function() {
     const p = currentProduct;
     if (!p) return;
-    const slug = (p.brand + '-' + p.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const url = `${location.origin}${location.pathname}?p=${slug}`;
-    const msg = `${p.brand} - ${p.name}\n${url}`;
+    const url = `${location.origin}${location.pathname}?p=${productSlug(p)}`;
+    const priceLine = isFull(p) ? `${fullShort(p)}: Gs. ${Number(p.priceFull).toLocaleString('es-PY')}` : `Decant 5 ml desde Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
+    const msg = `${p.brand} - ${p.name}\n${priceLine}\nVerlo en Eshara Aromas: ${url}`;
     if (navigator.share) {
       navigator.share({ title: `${p.brand} - ${p.name}`, text: msg }).catch(() => {});
     } else {
@@ -2438,10 +2753,7 @@ const auth = getAuth(app);
         if (productoId) {
           p = products.find(x => x.firestoreId === productoId);
         } else {
-          p = products.find(x => {
-            const slug = (x.brand + '-' + x.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            return slug === productoSlug;
-          });
+          p = products.find(x => productSlug(x) === productoSlug);
         }
         if (p) openDetail(p.firestoreId);
       }
