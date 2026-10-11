@@ -218,6 +218,13 @@
   .cart-qty-num { width: 28px; text-align: center; font-size: 13px; font-weight: 500; border-left: 0.5px solid rgba(0,0,0,0.1); border-right: 0.5px solid rgba(0,0,0,0.1); padding: 5px 0; }
   .cart-item-remove { background: none; border: none; cursor: pointer; color: var(--light); font-size: 16px; padding: 4px; flex-shrink: 0; }
   .cart-item-remove:hover { color: #c00; }
+  .ck-form { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 0.5px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 12px; }
+  .ck-title { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mid); }
+  .ck-field { display: flex; flex-direction: column; gap: 5px; }
+  .ck-field label { font-size: 11px; color: var(--mid); letter-spacing: 0.04em; }
+  .ck-field input, .ck-field select, .ck-field textarea { border: 0.5px solid rgba(0,0,0,0.2); padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--charcoal); outline: none; background: #fafafa; border-radius: 0; -webkit-appearance: none; width: 100%; box-sizing: border-box; }
+  .ck-field textarea { resize: vertical; min-height: 56px; }
+  .ck-field input:focus, .ck-field select:focus, .ck-field textarea:focus { border-color: var(--charcoal); background: #fff; }
   .cart-footer { padding: 1.5rem 2rem; border-top: 0.5px solid rgba(0,0,0,0.1); flex-shrink: 0; background: #fff; }
   .cart-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
   .cart-total-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); }
@@ -865,8 +872,38 @@ body.has-order-bar { padding-bottom: 72px; }
       <h2>Tu carrito</h2>
       <button class="cart-close" onclick="closeCart()">✕</button>
     </div>
-    <div class="cart-body" id="cart-body">
-      <div class="cart-empty">Tu carrito está vacío</div>
+    <div class="cart-body">
+      <div id="cart-body">
+        <div class="cart-empty">Tu carrito está vacío</div>
+      </div>
+      <div class="ck-form" id="cart-form" style="display:none;">
+        <div class="ck-title">Datos para la entrega</div>
+        <div class="ck-field"><label for="ck-name">Nombre y apellido *</label><input type="text" id="ck-name" maxlength="80" autocomplete="name" placeholder="Ej: María González"></div>
+        <div class="ck-field"><label for="ck-phone">Teléfono / WhatsApp *</label><input type="tel" id="ck-phone" maxlength="20" autocomplete="tel" placeholder="Ej: 0981 123 456"></div>
+        <div class="ck-field"><label for="ck-ci">Cédula de identidad (opcional, la piden algunas transportadoras)</label><input type="text" id="ck-ci" maxlength="15" inputmode="numeric" placeholder="Ej: 1.234.567"></div>
+        <div class="ck-field"><label for="ck-delivery">¿Cómo querés recibirlo? *</label>
+          <select id="ck-delivery" onchange="toggleCkAddress()">
+            <option value="Envío a domicilio">Envío a domicilio</option>
+            <option value="Encomienda / transportadora">Encomienda / transportadora</option>
+            <option value="Retiro en persona">Retiro en persona</option>
+          </select>
+        </div>
+        <div id="ck-carrier-box" style="display:none;flex-direction:column;gap:12px;">
+          <div class="ck-field"><label for="ck-carrier">¿Con qué transportadora querés que te lo enviemos? *</label><input type="text" id="ck-carrier" maxlength="80" placeholder="Escribí el nombre de la empresa"></div>
+        </div>
+        <div id="ck-address-box" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="ck-field"><label for="ck-city">Departamento y ciudad *</label><input type="text" id="ck-city" maxlength="80" placeholder="Ej: Caaguazú, Coronel Oviedo"></div>
+          <div class="ck-field"><label for="ck-address">Barrio, calle y número de casa (obligatorio si es a domicilio)</label><input type="text" id="ck-address" maxlength="140" autocomplete="street-address" placeholder="Ej: Barrio San Blas, calle Mcal. López 123"></div>
+          <div class="ck-field"><label for="ck-ref">Referencia o ubicación de Google Maps (opcional)</label><input type="text" id="ck-ref" maxlength="200" placeholder="Ej: casa blanca frente a la farmacia"></div>
+        </div>
+        <div class="ck-field"><label for="ck-pay">Forma de pago *</label>
+          <select id="ck-pay">
+            <option value="Transferencia bancaria">Transferencia bancaria</option>
+            <option value="Efectivo">Efectivo</option>
+          </select>
+        </div>
+        <div class="ck-field"><label for="ck-notes">Notas (opcional)</label><textarea id="ck-notes" maxlength="250" placeholder="Ej: horario para recibir, aclaraciones del pedido"></textarea></div>
+      </div>
     </div>
     <div class="cart-footer">
       <div class="cart-total-row">
@@ -1608,10 +1645,13 @@ const auth = getAuth(app);
     if (!cart.length) {
       body.innerHTML = '<div class="cart-empty">Tu carrito está vacío</div>';
       document.getElementById('cart-total').textContent = 'Gs. 0';
+      document.getElementById('cart-form').style.display = 'none';
       btn.disabled = true;
       return;
     }
     btn.disabled = false;
+    document.getElementById('cart-form').style.display = 'flex';
+    loadCkData();
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
     document.getElementById('cart-total').textContent = 'Gs. ' + total.toLocaleString('es-PY');
     body.innerHTML = cart.map((item, idx) => `
@@ -1646,11 +1686,60 @@ const auth = getAuth(app);
     renderCart();
   };
 
+  // ── Datos de entrega: se recuerdan en el celular del cliente para su próximo pedido ──
+  const CK_FIELDS = ['ck-name', 'ck-phone', 'ck-ci', 'ck-delivery', 'ck-carrier', 'ck-city', 'ck-address', 'ck-ref', 'ck-pay'];
+  let ckLoaded = false;
+  function loadCkData() {
+    if (ckLoaded) return;
+    ckLoaded = true;
+    try {
+      const saved = JSON.parse(localStorage.getItem('eshara_ck') || '{}');
+      CK_FIELDS.forEach(id => { if (saved[id]) document.getElementById(id).value = saved[id]; });
+    } catch (e) {}
+    toggleCkAddress();
+  }
+  function saveCkData() {
+    try {
+      const data = {};
+      CK_FIELDS.forEach(id => { data[id] = document.getElementById(id).value; });
+      localStorage.setItem('eshara_ck', JSON.stringify(data));
+    } catch (e) {}
+  }
+  window.toggleCkAddress = function() {
+    const d = document.getElementById('ck-delivery').value;
+    document.getElementById('ck-address-box').style.display = d === 'Retiro en persona' ? 'none' : 'flex';
+    document.getElementById('ck-carrier-box').style.display = d === 'Encomienda / transportadora' ? 'flex' : 'none';
+  };
+
   window.checkoutWhatsApp = function() {
     if (!cart.length) return;
-    const lines = cart.map(i => `${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
+    const v = id => document.getElementById(id).value.trim();
+    const delivery = v('ck-delivery');
+    const retiro = delivery === 'Retiro en persona';
+    const encomienda = delivery === 'Encomienda / transportadora';
+    const missing = [];
+    if (!v('ck-name')) missing.push('nombre y apellido');
+    if (!v('ck-phone')) missing.push('teléfono');
+    if (!retiro && !v('ck-city')) missing.push('departamento y ciudad');
+    if (encomienda && !v('ck-carrier')) missing.push('transportadora');
+    if (!retiro && !encomienda && !v('ck-address')) missing.push('dirección');
+    if (missing.length) { alert('Falta completar: ' + missing.join(', ') + '.'); return; }
+    saveCkData();
+    const lines = cart.map(i => `• ${i.brand} ${i.name}, ${i.qty} unidad${i.qty > 1 ? 'es' : ''} de ${i.label || (i.ml + 'ml')}, Gs. ${(i.price * i.qty).toLocaleString('es-PY')}`).join('\n');
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const msg = `Hola! Quiero hacer un pedido\n\n${lines}\n\nTotal: Gs. ${total.toLocaleString('es-PY')}`;
+    let msg = `Hola! Quiero hacer un pedido\n\n*PEDIDO*\n${lines}\n\n*Total: Gs. ${total.toLocaleString('es-PY')}*\n(el costo de envío se confirma por acá)\n\n*DATOS DEL CLIENTE*\nNombre: ${v('ck-name')}\nTeléfono: ${v('ck-phone')}`;
+    if (v('ck-ci')) msg += `\nCédula: ${v('ck-ci')}`;
+    msg += `\n\n*ENTREGA*\n${delivery}`;
+    if (encomienda) {
+      msg += `\nTransportadora: ${v('ck-carrier')}`;
+    }
+    if (!retiro) {
+      msg += `\nCiudad: ${v('ck-city')}`;
+      if (v('ck-address')) msg += `\nDirección: ${v('ck-address')}`;
+      if (v('ck-ref')) msg += `\nReferencia: ${v('ck-ref')}`;
+    }
+    msg += `\n\n*PAGO*\n${v('ck-pay')}`;
+    if (v('ck-notes')) msg += `\n\n*NOTAS*\n${v('ck-notes')}`;
     window.open('https://wa.me/595982413137?text=' + encodeURIComponent(msg), '_blank');
     setTimeout(() => { document.getElementById('thanks-overlay').classList.add('open'); }, 700);
   };
