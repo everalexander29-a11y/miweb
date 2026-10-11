@@ -1440,8 +1440,8 @@ const auth = getAuth(app);
     else if (activeFilter === 'todos') filtered = products.filter(p => !isFull(p));
     else filtered = products.filter(p => !isFull(p) && p.category === activeFilter);
     if (searchQuery) filtered = filtered.filter(matchesSearch);
-    // Solo en "Perfumes completos": los que ya aparecen arriba en destacados no se repiten en la grilla
-    const featuredIds = new Set(activeFilter === 'completos' ? getFeaturedItems().map(p => p.firestoreId) : []);
+    // Los que ya aparecen arriba en destacados no se repiten en la grilla (Decants y Perfumes completos)
+    const featuredIds = new Set(getFeaturedItems().map(p => p.firestoreId));
     if (featuredIds.size) filtered = filtered.filter(p => !featuredIds.has(p.firestoreId));
     let emptySearchMsg = 'Sin resultados.';
     if (searchQuery && !filtered.length) {
