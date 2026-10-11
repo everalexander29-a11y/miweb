@@ -1378,14 +1378,18 @@ const auth = getAuth(app);
     }
   }
 
+  // Productos que van en la fila de destacados (se usa también para no repetirlos en la grilla)
+  function getFeaturedItems() {
+    if (!((activeFilter === 'todos' || activeFilter === 'completos') && !searchQuery)) return [];
+    return products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot') && (activeFilter === 'completos' ? isFull(p) : !isFull(p))).slice(0, 10);
+  }
+
   // Fila de ofertas y más pedidos: en "Decants" muestra decants y en "Perfumes completos" muestra completos (sin búsqueda)
   function renderFeatured() {
     const box = document.getElementById('featured');
     const row = document.getElementById('featured-row');
     if (!box || !row) return;
-    const items = ((activeFilter === 'todos' || activeFilter === 'completos') && !searchQuery)
-      ? products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot') && (activeFilter === 'completos' ? isFull(p) : !isFull(p))).slice(0, 10)
-      : [];
+    const items = getFeaturedItems();
     if (!items.length) { box.style.display = 'none'; row.innerHTML = ''; return; }
     row.innerHTML = items.map(p => {
       const label = p.badge === 'sale' ? 'Oferta' : 'Mas pedido';
@@ -1436,6 +1440,9 @@ const auth = getAuth(app);
     else if (activeFilter === 'todos') filtered = products.filter(p => !isFull(p));
     else filtered = products.filter(p => !isFull(p) && p.category === activeFilter);
     if (searchQuery) filtered = filtered.filter(matchesSearch);
+    // Solo en "Perfumes completos": los que ya aparecen arriba en destacados no se repiten en la grilla
+    const featuredIds = new Set(activeFilter === 'completos' ? getFeaturedItems().map(p => p.firestoreId) : []);
+    if (featuredIds.size) filtered = filtered.filter(p => !featuredIds.has(p.firestoreId));
     let emptySearchMsg = 'Sin resultados.';
     if (searchQuery && !filtered.length) {
       const inCompletos = activeFilter === 'completos';
