@@ -1468,7 +1468,7 @@ const auth = getAuth(app);
   let vialImgs = null;
   function hasVial3(p) { return !isFull(p) && !!p.img; }
   function vialCount(p) { return (VIAL_3ML_EN_TODOS || Number(p.price3) > 0) ? 3 : 2; }
-  function vialKey(url, n) { return url + '|' + n; }
+  function vialKey(url, n, sel) { return url + '|' + n + '|' + (sel || 0); }
   function loadImgEl(src, cors) {
     return new Promise((res, rej) => { const im = new Image(); if (cors) im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = src; });
   }
@@ -1476,8 +1476,8 @@ const auth = getAuth(app);
     if (!vialImgs) vialImgs = Promise.all([loadImgEl(VIALS.v10.src), loadImgEl(VIALS.v5.src), loadImgEl(VIALS.v3.src)]);
     return vialImgs;
   }
-  function composeVial(url, n) {
-    const key = vialKey(url, n);
+  function composeVial(url, n, sel) {
+    const key = vialKey(url, n, sel);
     if (vialCache.has(key)) return Promise.resolve(vialCache.get(key));
     if (vialPending.has(key)) return vialPending.get(key);
     const job = (async () => {
@@ -1505,16 +1505,43 @@ const auth = getAuth(app);
         // borrar los frascos viejos
         ctx.fillRect(640 * K, 300 * K, 275 * K, 810 * K);
         // dibujar los frascos nuevos: misma tapa y mismo estilo, apoyados en la misma base
-        const list = [VIALS.v10, VIALS.v5, VIALS.v3].slice(0, n);
+        const list = [{ v: VIALS.v10, ml: 10 }, { v: VIALS.v5, ml: 5 }, { v: VIALS.v3, ml: 3 }].slice(0, n);
         const f = 758 / VIALS.v10.h, base = 1085, gap = 34;
         let x = 656;
-        ctx.globalCompositeOperation = 'multiply';
-        list.forEach((v, i) => {
-          const w = v.w * f, h = v.h * f;
-          ctx.drawImage(vImgs[i], x * K, (base - h + 3 * f) * K, w * K, h * K);
+        const lay = list.map((it, i) => {
+          const w = it.v.w * f, h = it.v.h * f, o2 = { ml: it.ml, i, x, w, h };
           x += w + gap;
+          return o2;
         });
+        const roundRect = (rx, ry, rw, rh, rr) => {
+          ctx.beginPath();
+          ctx.moveTo(rx + rr, ry); ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr); ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
+          ctx.arcTo(rx, ry + rh, rx, ry, rr); ctx.arcTo(rx, ry, rx + rw, ry, rr); ctx.closePath();
+        };
+        const chosen = sel ? lay.find(l => l.ml === sel) : null;
+        // Tarjeta suave detrás del frasco elegido
+        if (chosen) {
+          roundRect((chosen.x - 18) * K, (base - chosen.h - 22) * K, (chosen.w + 36) * K, (chosen.h + 22 + 76) * K, 26 * K);
+          ctx.fillStyle = 'rgba(0,0,0,0.045)'; ctx.fill();
+          ctx.lineWidth = 2 * K; ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.stroke();
+        }
+        // Frascos nuevos: misma tapa y mismo estilo, apoyados en la misma base
+        ctx.globalCompositeOperation = 'multiply';
+        lay.forEach(l => {
+          ctx.globalAlpha = (sel && l.ml !== sel) ? 0.55 : 1;
+          ctx.drawImage(vImgs[l.i], l.x * K, (base - l.h + 3 * f) * K, l.w * K, l.h * K);
+        });
+        ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
+        // Etiqueta con el tamaño elegido, debajo del frasco
+        if (chosen) {
+          const pw = 112, ph = 38, px0 = chosen.x + chosen.w / 2 - pw / 2, py0 = base + 22;
+          roundRect(px0 * K, py0 * K, pw * K, ph * K, (ph / 2) * K);
+          ctx.fillStyle = '#0a0a0a'; ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.font = '600 ' + (21 * K) + 'px "DM Sans", Arial, Helvetica, sans-serif';
+          ctx.fillText(chosen.ml + ' ml', (px0 + pw / 2) * K, (py0 + ph / 2 + 1) * K);
+        }
         const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.95));
         if (!blob) { vialCache.set(key, null); return null; }
         const data = URL.createObjectURL(blob);
@@ -1525,10 +1552,18 @@ const auth = getAuth(app);
     vialPending.set(key, job);
     return job;
   }
+  function swapImg(el, src) {
+    if (el.getAttribute('src') === src) return;
+    if (el.id !== 'detail-img' || !el.getAttribute('src')) { el.src = src; return; }
+    el.style.transition = 'opacity .16s ease'; el.style.opacity = '0.25';
+    setTimeout(() => { el.src = src; el.style.opacity = '1'; }, 140);
+  }
   function applyVials() {
     document.querySelectorAll('img[data-vial3]').forEach(el => {
-      const url = el.dataset.vial3, n = Number(el.dataset.vialN) || 3;
-      composeVial(url, n).then(data => { if (data && el.dataset.vial3 === url && (Number(el.dataset.vialN) || 3) === n) el.src = data; });
+      const url = el.dataset.vial3, n = Number(el.dataset.vialN) || 3, sel = Number(el.dataset.vialSel) || 0;
+      composeVial(url, n, sel).then(data => {
+        if (data && el.dataset.vial3 === url && (Number(el.dataset.vialN) || 3) === n && (Number(el.dataset.vialSel) || 0) === sel) swapImg(el, data);
+      });
     });
   }
   let vialTimer;
@@ -1620,7 +1655,7 @@ const auth = getAuth(app);
       const badgeLabel = isAgotado ? 'Agotado' : p.badge === 'new' ? 'Nuevo' : p.badge === 'hot' ? 'Mas pedido' : p.badge === 'sale' ? 'Oferta' : '';
       const badgeClass = isAgotado ? 'badge-agotado' : p.badge ? `badge-${p.badge}` : '';
       const badgeHTML = (isAgotado || p.badge) ? `<span class="badge ${badgeClass}">${badgeLabel}</span>` : '';
-      const imgHTML = p.img ? `<img src="${(hasVial3(p) && vialCache.get(vialKey(p.img, vialCount(p)))) || p.img}" alt="${p.name}" loading="lazy"${hasVial3(p) ? ` data-vial3="${p.img}" data-vial-n="${vialCount(p)}"` : ''}>` : `<div class="product-img-placeholder"></div>`;
+      const imgHTML = p.img ? `<img src="${(hasVial3(p) && vialCache.get(vialKey(p.img, vialCount(p), 0))) || p.img}" alt="${p.name}" loading="lazy"${hasVial3(p) ? ` data-vial3="${p.img}" data-vial-n="${vialCount(p)}"` : ''}>` : `<div class="product-img-placeholder"></div>`;
       const priceHTML = isFull(p) ? `<div class="product-price">Gs. ${Number(p.priceFull).toLocaleString('es-PY')} <span class="product-ml">/ ${fullShort(p)}</span></div>` : p.priceOld5 ? `<div class="product-price"><span class="product-price-old">Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}</span><span class="product-price-sale">Gs. ${Number(p.price5).toLocaleString('es-PY')}</span><span class="product-ml"> / 5ml</span></div>` : `<div class="product-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>`;
       return `
       <div class="product-card${isAgotado ? ' agotado' : ''}" onclick="openDetail('${p.firestoreId}')">
@@ -1695,7 +1730,15 @@ const auth = getAuth(app);
     const img = document.getElementById('detail-img');
     const placeholder = document.getElementById('detail-placeholder');
     if (p.img) {
-      if (hasVial3(p)) { img.dataset.vial3 = p.img; img.dataset.vialN = vialCount(p); img.src = vialCache.get(vialKey(p.img, vialCount(p))) || p.img; } else { delete img.dataset.vial3; img.src = p.img; }
+      if (hasVial3(p)) {
+        const n = vialCount(p);
+        img.dataset.vial3 = p.img; img.dataset.vialN = n; img.dataset.vialSel = selectedMl;
+        const cached = vialCache.get(vialKey(p.img, n, selectedMl));
+        if (cached) swapImg(img, cached);
+        else if (img.dataset.vialFor !== p.firestoreId) img.src = p.img;   // al cambiar de tamaño se mantiene la foto actual hasta que esté lista la nueva
+        img.dataset.vialFor = p.firestoreId;
+        [10, 5, 3].filter(ml => ml <= 10 && (ml !== 3 || n === 3)).forEach(ml => composeVial(p.img, n, ml));   // deja listas las otras versiones
+      } else { delete img.dataset.vial3; delete img.dataset.vialSel; delete img.dataset.vialFor; img.src = p.img; }
       img.style.display = 'block'; placeholder.style.display = 'none';
       applyVials();
     }
