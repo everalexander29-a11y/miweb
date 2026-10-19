@@ -1475,12 +1475,15 @@ const auth = getAuth(app);
         const k = photo.naturalHeight / 1280;
         const out = Math.min(1, 1100 / photo.naturalHeight);
         const c = document.createElement('canvas');
-        c.width = Math.round((photo.naturalWidth + 110 * k) * out);
+        c.width = Math.round((photo.naturalWidth + 150 * k) * out);
         c.height = Math.round(photo.naturalHeight * out);
         const ctx = c.getContext('2d');
         ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
         ctx.drawImage(photo, 0, 0, photo.naturalWidth * out, photo.naturalHeight * out);
-        ctx.drawImage(vial, 924 * k * out, 707 * k * out, 107 * 0.74 * k * out, 517 * 0.74 * k * out);
+        // Vial de 3 ml: misma tapa que el de 5 ml, con el vidrio más corto (como un vial real)
+        const SPLIT = 188, BODY_H = 0.62, vx = 923, vy = 698;
+        ctx.drawImage(vial, 0, 0, 107, SPLIT, vx * k * out, vy * k * out, 107 * k * out, SPLIT * k * out);
+        ctx.drawImage(vial, 0, SPLIT, 107, 517 - SPLIT, vx * k * out, (vy + SPLIT) * k * out, 107 * k * out, (517 - SPLIT) * BODY_H * k * out);
         const data = c.toDataURL('image/jpeg', 0.9);
         vialCache.set(url, data);
         return data;
