@@ -1468,6 +1468,13 @@ const auth = getAuth(app);
   let vialImgs = null;
   function hasVial3(p) { return !isFull(p) && !!p.img; }
   function vialCount(p) { return (VIAL_3ML_EN_TODOS || Number(p.price3) > 0) ? 3 : 2; }
+  // Imagen de producto lista para usar en cualquier lista (catálogo, destacados, recomendados)
+  function productImgTag(p) {
+    if (!p.img) return '<div class="product-img-placeholder"></div>';
+    const n = vialCount(p);
+    const src = (hasVial3(p) && vialCache.get(vialKey(p.img, n, 0))) || p.img;
+    return `<img src="${src}" alt="${p.name}" loading="lazy"${hasVial3(p) ? ` data-vial3="${p.img}" data-vial-n="${n}"` : ''}>`;
+  }
   function vialKey(url, n, sel) { return url + '|' + n + '|' + (sel || 0); }
   function loadImgEl(src, cors) {
     return new Promise((res, rej) => { const im = new Image(); if (cors) im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = src; });
@@ -1584,7 +1591,7 @@ const auth = getAuth(app);
     if (!items.length) { box.style.display = 'none'; row.innerHTML = ''; return; }
     row.innerHTML = items.map(p => {
       const label = p.badge === 'sale' ? 'Oferta' : 'Mas pedido';
-      const img = p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy">` : '<div class="product-img-placeholder"></div>';
+      const img = productImgTag(p);
       const price = isFull(p) ? p.priceFull : p.price5;
       const txt = isFull(p) ? ('Gs. ' + Number(price).toLocaleString('es-PY')) : ('Desde Gs. ' + Number(price).toLocaleString('es-PY'));
       return `<div class="feat-card" onclick="openDetail('${p.firestoreId}')"><div class="fimg"><span class="badge badge-${p.badge}" style="top:8px;left:8px;font-size:8.5px;padding:4px 8px;">${label}</span>${img}</div><div class="fi"><div class="fb">${p.brand}</div><div class="fn">${p.name}</div><div class="fp">${txt}</div></div></div>`;
@@ -2950,7 +2957,7 @@ const auth = getAuth(app);
       grid.innerHTML = top.map((p, i) => `
         <div class="reco-card" onclick="openDetail('${p.firestoreId}')">
           ${i === 0 && p.score > 0 ? '<span class="reco-top">Tu match</span>' : ''}
-          <div class="reco-img">${p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy">` : '<div class="product-img-placeholder"></div>'}</div>
+          <div class="reco-img">${productImgTag(p)}</div>
           <div class="reco-info">
             <div class="reco-brand">${p.brand}</div>
             <div class="reco-name">${p.name}</div>
