@@ -2871,6 +2871,33 @@ const auth = getAuth(app);
     do { ctx.font = font.replace('{px}', px); px -= 2; } while (ctx.measureText(text).width > maxW && px > 20);
     return px + 2;
   }
+  // Achica el frasco al tamaño final en pasos y le da un toque de nitidez, para que no se vea borroso
+  function sorteoSharpBottle(src, tw, th) {
+    let cur = src;
+    while (cur.width > tw * 2) {
+      const t = document.createElement('canvas'); t.width = Math.round(cur.width / 2); t.height = Math.round(cur.height / 2);
+      const tx = t.getContext('2d'); tx.imageSmoothingEnabled = true; tx.imageSmoothingQuality = 'high';
+      tx.drawImage(cur, 0, 0, t.width, t.height); cur = t;
+    }
+    const c = document.createElement('canvas'); c.width = tw; c.height = th;
+    const cx = c.getContext('2d'); cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, tw, th);
+    cx.drawImage(cur, 0, 0, tw, th);
+    try {
+      const id = cx.getImageData(0, 0, tw, th), d = id.data, o = new Uint8ClampedArray(d), amt = 0.5;
+      for (let y = 1; y < th - 1; y++) {
+        for (let x = 1; x < tw - 1; x++) {
+          const i = (y * tw + x) * 4;
+          for (let ch = 0; ch < 3; ch++) {
+            const k = i + ch;
+            o[k] = d[k] + amt * (4 * d[k] - d[k - 4] - d[k + 4] - d[k - tw * 4] - d[k + tw * 4]);
+          }
+        }
+      }
+      id.data.set(o); cx.putImageData(id, 0, 0);
+    } catch (e) {}
+    return c;
+  }
   // Recorta de la foto solo el frasco del perfume (sin los decants que traía la foto) y le saca el blanco sobrante
   function sorteoBottle(p, im) {
     const full = isFull(p);
@@ -2957,8 +2984,9 @@ const auth = getAuth(app);
       const vDef = [VIALS.v10, VIALS.v5, VIALS.v3][vIdx];
       const vImg = (await getVialImgs())[vIdx];
       const VF = 758 / VIALS.v10.h;            // misma proporción frasco/decant que en las fotos de la tienda
-      const GAP_IN = 18, GAP_BETWEEN = 46, MAXW = 940, AREA_BOTTOM = 1420, AREA_H = 720, ROW_GAP = 40;
-      const items = sel.map((p, i) => ({ p, b: imgs[i] ? sorteoBottle(p, imgs[i]) : null, v: !isFull(p) })).filter(it => it.b);
+      const SORTEO_CON_DECANT = false;   // true: vuelve a mostrar el decant al lado de cada perfume
+      const GAP_IN = 18, GAP_BETWEEN = SORTEO_CON_DECANT ? 46 : 34, MAXW = SORTEO_CON_DECANT ? 940 : 980, AREA_BOTTOM = 1420, AREA_H = SORTEO_CON_DECANT ? 720 : 780, ROW_GAP = 40;
+      const items = sel.map((p, i) => ({ p, b: imgs[i] ? sorteoBottle(p, imgs[i]) : null, v: SORTEO_CON_DECANT && !isFull(p) })).filter(it => it.b);
       const rowsIdx = items.length === 4 ? [[0, 1], [2, 3]] : [items.map((_, i) => i)];
       const rows = rowsIdx.map(r => r.map(i => items[i]));
       // un solo tamaño para todos: el más grande que entre sin pasarse de ancho ni de alto
@@ -2969,7 +2997,7 @@ const auth = getAuth(app);
         s = Math.min(s, (MAXW - consts) / sumUnits);
       });
       const rowMax = rows.map(row => Math.max(...row.map(it => it.b.h)));
-      s = Math.min(s, ((rows.length === 2 ? 860 : AREA_H) - (rows.length - 1) * ROW_GAP) / rowMax.reduce((a, b) => a + b, 0));
+      s = Math.min(s, ((rows.length === 2 ? (SORTEO_CON_DECANT ? 860 : 900) : AREA_H) - (rows.length - 1) * ROW_GAP) / rowMax.reduce((a, b) => a + b, 0));
 
       const baselines = rows.length === 2 ? [AREA_BOTTOM - s * rowMax[1] - ROW_GAP, AREA_BOTTOM] : [AREA_BOTTOM];
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
@@ -2980,7 +3008,8 @@ const auth = getAuth(app);
         let x = (W - rowW) / 2;
         const base = baselines[ri];
         row.forEach(it => {
-          ctx.drawImage(it.b.c, x, base - s * it.b.h, s * it.b.w, s * it.b.h);
+          const tw = Math.round(s * it.b.w), th = Math.round(s * it.b.h);
+          ctx.drawImage(sorteoSharpBottle(it.b.c, tw, th), Math.round(x), Math.round(base - th));
           if (it.v && vImg) {
             const vw = s * VF * vDef.w, vh = s * VF * vDef.h;
             const vBottom = base + s * it.b.vBase + s * VF * 3;
