@@ -1500,6 +1500,13 @@ const auth = getAuth(app);
   let vialImgs = null;
   function hasVial3(p) { return !isFull(p) && !!p.img; }
   function vialCount(p) { return (VIAL_3ML_EN_TODOS || Number(p.price3) > 0) ? 3 : 2; }
+  // Presentación de decant más barata (ahora incluye 3 ml si el producto lo tiene)
+  function minDecant(p) {
+    const opts = [{ ml: 5, price: Number(p.price5) }, { ml: 10, price: Number(p.price10) }];
+    if (Number(p.price3) > 0) opts.push({ ml: 3, price: Number(p.price3) });
+    const valid = opts.filter(o => o.price > 0).sort((a, b) => a.price - b.price);
+    return valid[0] || { ml: 5, price: Number(p.price5) };
+  }
   // Imagen de producto lista para usar en cualquier lista (catálogo, destacados, recomendados)
   function productImgTag(p) {
     if (!p.img) return '<div class="product-img-placeholder"></div>';
@@ -1624,7 +1631,7 @@ const auth = getAuth(app);
     row.innerHTML = items.map(p => {
       const label = p.badge === 'sale' ? 'Oferta' : 'Mas pedido';
       const img = productImgTag(p);
-      const price = isFull(p) ? p.priceFull : p.price5;
+      const price = isFull(p) ? p.priceFull : minDecant(p).price;
       const txt = isFull(p) ? ('Gs. ' + Number(price).toLocaleString('es-PY')) : ('Desde Gs. ' + Number(price).toLocaleString('es-PY'));
       return `<div class="feat-card" onclick="openDetail('${p.firestoreId}')"><div class="fimg"><span class="badge badge-${p.badge}" style="top:8px;left:8px;font-size:8.5px;padding:4px 8px;">${label}</span>${img}</div><div class="fi"><div class="fb">${p.brand}</div><div class="fn">${p.name}</div><div class="fp">${txt}</div></div></div>`;
     }).join('');
@@ -1695,7 +1702,7 @@ const auth = getAuth(app);
       const badgeClass = isAgotado ? 'badge-agotado' : p.badge ? `badge-${p.badge}` : '';
       const badgeHTML = (isAgotado || p.badge) ? `<span class="badge ${badgeClass}">${badgeLabel}</span>` : '';
       const imgHTML = p.img ? `<img src="${(hasVial3(p) && vialCache.get(vialKey(p.img, vialCount(p), 0))) || p.img}" alt="${p.name}" loading="lazy"${hasVial3(p) ? ` data-vial3="${p.img}" data-vial-n="${vialCount(p)}"` : ''}>` : `<div class="product-img-placeholder"></div>`;
-      const priceHTML = isFull(p) ? `<div class="product-price">Gs. ${Number(p.priceFull).toLocaleString('es-PY')} <span class="product-ml">/ ${fullShort(p)}</span></div>` : p.priceOld5 ? `<div class="product-price"><span class="product-price-old">Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}</span><span class="product-price-sale">Gs. ${Number(p.price5).toLocaleString('es-PY')}</span><span class="product-ml"> / 5ml</span></div>` : `<div class="product-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span class="product-ml">/ 5ml</span></div>`;
+      const priceHTML = isFull(p) ? `<div class="product-price">Gs. ${Number(p.priceFull).toLocaleString('es-PY')} <span class="product-ml">/ ${fullShort(p)}</span></div>` : p.priceOld5 ? `<div class="product-price"><span class="product-price-old">Gs. ${Number(p.priceOld5).toLocaleString('es-PY')}</span><span class="product-price-sale">Gs. ${Number(p.price5).toLocaleString('es-PY')}</span><span class="product-ml"> / 5ml</span></div>` : `<div class="product-price">Gs. ${minDecant(p).price.toLocaleString('es-PY')} <span class="product-ml">/ ${minDecant(p).ml}ml</span></div>`;
       return `
       <div class="product-card${isAgotado ? ' agotado' : ''}" onclick="openDetail('${p.firestoreId}')">
         <button class="card-delete-btn" onclick="event.stopPropagation();deleteProduct('${p.firestoreId}')">✕</button>
@@ -3200,7 +3207,7 @@ const auth = getAuth(app);
     const p = currentProduct;
     if (!p) return;
     const url = `${location.origin}${location.pathname}?p=${productSlug(p)}`;
-    const priceLine = isFull(p) ? `${fullShort(p)}: Gs. ${Number(p.priceFull).toLocaleString('es-PY')}` : `Decant 5 ml desde Gs. ${Number(p.price5).toLocaleString('es-PY')}`;
+    const priceLine = isFull(p) ? `${fullShort(p)}: Gs. ${Number(p.priceFull).toLocaleString('es-PY')}` : `Decants desde Gs. ${minDecant(p).price.toLocaleString('es-PY')}`;
     const msg = `${p.brand} - ${p.name}\n${priceLine}\nVerlo en Eshara Aromas: ${url}`;
     if (navigator.share) {
       navigator.share({ title: `${p.brand} - ${p.name}`, text: msg }).catch(() => {});
@@ -3270,7 +3277,7 @@ const auth = getAuth(app);
             <div class="reco-brand">${p.brand}</div>
             <div class="reco-name">${p.name}</div>
             <div class="reco-notes">${noteText(p)}</div>
-            <div class="reco-price">Gs. ${Number(p.price5).toLocaleString('es-PY')} <span>/ 5ml</span></div>
+            <div class="reco-price">Gs. ${minDecant(p).price.toLocaleString('es-PY')} <span>/ ${minDecant(p).ml}ml</span></div>
           </div>
         </div>`).join('');
     }
