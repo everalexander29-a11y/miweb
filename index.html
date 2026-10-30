@@ -1309,21 +1309,28 @@ body.has-order-bar { padding-bottom: 72px; }
   <div class="share-backdrop" onclick="closeSorteo()"></div>
   <div class="share-modal">
     <h3>Imagen de sorteo</h3>
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+      <button id="sorteo-m-sorteo" class="inv-btn" onclick="sorteoSetMode('sorteo')">Sorteo</button>
+      <button id="sorteo-m-inv" class="inv-btn soft" onclick="sorteoSetMode('inv')">Invitá y ganá</button>
+    </div>
     <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.25rem;">
       <div class="admin-field"><label>Perfume 1</label><select id="sorteo-p1" onchange="sorteoAutoSub()"></select></div>
       <div class="admin-field"><label>Perfume 2</label><select id="sorteo-p2" onchange="sorteoAutoSub()"></select></div>
       <div class="admin-field"><label>Perfume 3</label><select id="sorteo-p3" onchange="sorteoAutoSub()"></select></div>
       <div class="admin-field"><label>Perfume 4 (opcional)</label><select id="sorteo-p4" onchange="sorteoAutoSub()"></select></div>
-      <div class="admin-row">
+      <div class="admin-row" id="sorteo-row-inv" style="display:none;">
+        <div class="admin-field"><label>Invitados para ganar</label><input type="number" id="sorteo-invmeta" inputmode="numeric" min="1" value="30"></div>
+      </div>
+      <div class="admin-row" id="sorteo-row-cupos">
         <div class="admin-field"><label>Cupos</label><input type="number" id="sorteo-cupos" inputmode="numeric" min="1" value="30"></div>
         <div class="admin-field"><label>Precio por cupo (Gs.)</label><input type="number" id="sorteo-precio" inputmode="numeric" min="1" value="8000"></div>
       </div>
       <div class="admin-row">
-        <div class="admin-field"><label>ml de cada uno</label><input type="number" id="sorteo-ml" inputmode="numeric" min="1" value="5" oninput="sorteoAutoSub()"></div>
+        <div class="admin-field"><label id="sorteo-ml-lbl">ml de cada uno</label><input type="number" id="sorteo-ml" inputmode="numeric" min="1" value="5" oninput="sorteoAutoSub()"></div>
         <div class="admin-field"><label>Título</label><input type="text" id="sorteo-titulo" value="SORTEO EXCLUSIVO 🔥" maxlength="40"></div>
       </div>
       <div class="admin-field"><label>Subtítulo (se arma solo, podés cambiarlo)</label><input type="text" id="sorteo-sub" maxlength="60" oninput="this.dataset.manual='1'"></div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;"><input type="checkbox" id="sorteo-sinlimite" checked> Agregar "sin límite de cupos por persona"</label>
+      <label id="sorteo-lbl-sinlimite" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;"><input type="checkbox" id="sorteo-sinlimite" checked> Agregar "sin límite de cupos por persona"</label>
       <button id="sorteo-gen-btn" onclick="generarSorteo()" style="background:#0a0a0a;color:#fff;border:none;padding:12px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Generar imagen</button>
     </div>
     <canvas id="sorteo-canvas" style="width:100%;border:0.5px solid rgba(0,0,0,0.1);display:none;pointer-events:none;"></canvas>
@@ -1393,20 +1400,7 @@ body.has-order-bar { padding-bottom: 72px; }
       <button class="inv-btn soft" onclick="invTerminar()">Terminar ahora</button>
     </div>
 
-    <div class="admin-section-title">Imagen para promocionar</div>
-    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.25rem;">
-      <div class="admin-field"><label>Perfume 1</label><select id="invf-p1"></select></div>
-      <div class="admin-field"><label>Perfume 2 (opcional)</label><select id="invf-p2"></select></div>
-      <div class="admin-field"><label>Perfume 3 (opcional)</label><select id="invf-p3"></select></div>
-      <div class="admin-field"><label>Perfume 4 (opcional)</label><select id="invf-p4"></select></div>
-      <button class="inv-btn" id="invf-gen-btn" onclick="generarInvFlyer()">Generar imagen</button>
-    </div>
-    <canvas id="invf-canvas" style="width:100%;border:0.5px solid rgba(0,0,0,0.1);display:none;pointer-events:none;"></canvas>
-    <div id="invf-actions" style="display:none;flex-direction:column;gap:0.75rem;margin-top:1rem;">
-      <button class="inv-btn wa" onclick="sorteoCompartir('invf-canvas')">Compartir / Guardar</button>
-      <button class="inv-btn" onclick="sorteoVer('invf-canvas')">Ver imagen completa</button>
-      <button class="inv-btn soft" onclick="sorteoDescargar('invf-canvas')">Descargar (en PC)</button>
-    </div>
+    <button class="inv-btn" style="margin:0 0 1.75rem;" onclick="closeInvAdmin();openSorteo('inv')">Hacer imagen para promocionar</button>
 
     <div class="admin-section-title" style="margin-top:2rem;">Quién va ganando</div>
     <button class="inv-btn" onclick="invRanking()">Ver ranking</button>
@@ -2922,6 +2916,8 @@ const auth = getAuth(app);
 
   // ── SORTEO: IMAGEN AUTOMÁTICA ─────────────────────────────
   const SORTEO_KEY = 'eshara_sorteo_v1';
+  const SORTEO_INV_KEY = 'eshara_sorteo_inv_v1';
+  window.sorteoMode = 'sorteo';
   function sorteoEsc(t) { return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function sorteoSelected() {
     return [1,2,3,4].map(n => document.getElementById('sorteo-p' + n).value).filter(Boolean)
@@ -2933,9 +2929,9 @@ const auth = getAuth(app);
     const sel = sorteoSelected();
     const ml = parseInt(document.getElementById('sorteo-ml').value) || 5;
     const brands = [...new Set(sel.map(p => (p.brand || '').trim().toUpperCase()).filter(Boolean))];
-    sub.value = brands.length === 1 ? `COMBO ${brands[0]}-${ml}ML CADA UNO` : `COMBO ${ml}ML CADA UNO`;
+    sub.value = window.sorteoMode === 'inv' ? `UN DECANT DE ${ml}ML GRATIS` : (brands.length === 1 ? `COMBO ${brands[0]}-${ml}ML CADA UNO` : `COMBO ${ml}ML CADA UNO`);
   };
-  window.openSorteo = function() {
+  window.openSorteo = function(mode) {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(SORTEO_KEY) || '{}'); } catch(e) {}
     const list = products.filter(p => p.img).sort((a, b) => ((a.brand || '') + ' ' + (a.name || '')).localeCompare((b.brand || '') + ' ' + (b.name || '')));
@@ -2954,10 +2950,37 @@ const auth = getAuth(app);
     const sub = document.getElementById('sorteo-sub');
     sub.dataset.manual = '';
     sub.value = '';
+    sorteoSetMode(mode === 'inv' ? 'inv' : 'sorteo');
+    document.getElementById('sorteo-overlay').classList.add('open');
+  };
+  window.sorteoSetMode = function(m) {
+    window.sorteoMode = m;
+    const inv = m === 'inv';
+    document.getElementById('sorteo-m-sorteo').className = 'inv-btn' + (inv ? ' soft' : '');
+    document.getElementById('sorteo-m-inv').className = 'inv-btn' + (inv ? '' : ' soft');
+    document.getElementById('sorteo-row-cupos').style.display = inv ? 'none' : '';
+    document.getElementById('sorteo-row-inv').style.display = inv ? '' : 'none';
+    document.getElementById('sorteo-lbl-sinlimite').style.display = inv ? 'none' : 'flex';
+    document.getElementById('sorteo-ml-lbl').textContent = inv ? 'ml del decant gratis' : 'ml de cada uno';
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(inv ? SORTEO_INV_KEY : SORTEO_KEY) || '{}'); } catch (e) {}
+    document.getElementById('sorteo-titulo').value = saved.titulo || (inv ? 'INVITÁ Y GANÁ 🎁' : 'SORTEO EXCLUSIVO 🔥');
+    document.getElementById('sorteo-ml').value = saved.ml || (inv ? 3 : 5);
+    if (inv) {
+      const c = invCfg();
+      document.getElementById('sorteo-invmeta').value = (c && c.meta) || saved.meta || 30;
+    }
+    if (saved.ids) {
+      [1,2,3,4].forEach((n, i) => {
+        const el = document.getElementById('sorteo-p' + n), id = saved.ids[i];
+        el.value = [...el.options].some(o => o.value === id) ? id : '';
+      });
+    }
+    const sub = document.getElementById('sorteo-sub');
+    sub.dataset.manual = ''; sub.value = '';
     sorteoAutoSub();
     document.getElementById('sorteo-canvas').style.display = 'none';
     document.getElementById('sorteo-actions').style.display = 'none';
-    document.getElementById('sorteo-overlay').classList.add('open');
   };
   window.closeSorteo = function() { document.getElementById('sorteo-overlay').classList.remove('open'); };
 
@@ -3046,18 +3069,25 @@ const auth = getAuth(app);
   }
 
   window.generarSorteo = async function() {
+    const inv = window.sorteoMode === 'inv';
     const sel = sorteoSelected();
-    if (sel.length < 2) { alert('Elegí al menos 2 perfumes.'); return; }
-    const cupos = parseInt(document.getElementById('sorteo-cupos').value);
-    const precio = parseInt(document.getElementById('sorteo-precio').value);
-    if (!cupos || cupos < 1 || !precio || precio < 1) { alert('Poné los cupos y el precio.'); return; }
-    const titulo = document.getElementById('sorteo-titulo').value.trim() || 'SORTEO EXCLUSIVO 🔥';
+    if (sel.length < (inv ? 1 : 2)) { alert(inv ? 'Elegí al menos 1 perfume.' : 'Elegí al menos 2 perfumes.'); return; }
+    let cupos = 0, precio = 0, meta = 30;
+    if (inv) {
+      meta = parseInt(document.getElementById('sorteo-invmeta').value) || 0;
+      if (meta < 1) { alert('Poné cuántos invitados hacen falta para ganar.'); return; }
+    } else {
+      cupos = parseInt(document.getElementById('sorteo-cupos').value);
+      precio = parseInt(document.getElementById('sorteo-precio').value);
+      if (!cupos || cupos < 1 || !precio || precio < 1) { alert('Poné los cupos y el precio.'); return; }
+    }
+    const titulo = document.getElementById('sorteo-titulo').value.trim() || (inv ? 'INVITÁ Y GANÁ 🎁' : 'SORTEO EXCLUSIVO 🔥');
     const sub = document.getElementById('sorteo-sub').value.trim();
     const sinLimite = document.getElementById('sorteo-sinlimite').checked;
     try {
-      localStorage.setItem(SORTEO_KEY, JSON.stringify({
+      localStorage.setItem(inv ? SORTEO_INV_KEY : SORTEO_KEY, JSON.stringify({
         ids: [1,2,3,4].map(n => document.getElementById('sorteo-p' + n).value),
-        cupos, precio, ml: document.getElementById('sorteo-ml').value, titulo, sinLimite
+        cupos, precio, meta, ml: document.getElementById('sorteo-ml').value, titulo, sinLimite
       }));
     } catch(e) {}
 
@@ -3130,14 +3160,14 @@ const auth = getAuth(app);
       // Título y subtítulo: centrados en el espacio entre el logo y los perfumes
       const logoBottom = logo ? 95 * 1.2 + logo.height * 1.2 : 240;
       const perfTop = Math.min(...rows[0].map(it => baselines[0] - s * it.b.h));
-      ctx.fillStyle = '#f01414';
+      ctx.fillStyle = inv ? INV_GREEN : '#f01414';
       const tpx = sorteoFit(ctx, titulo, '{px}px Anton, Impact, sans-serif', 860, 108);
       const tCap = tpx * 0.74;
       let spx = 0, sCap = 0;
       if (sub) { ctx.fillStyle = '#000'; spx = sorteoFit(ctx, sub, '{px}px Anton, Impact, sans-serif', 700, 52); sCap = spx * 0.74; }
       const blockH = tCap + (sub ? 40 + sCap : 0);
       const blockTop = (logoBottom + perfTop) / 2 - blockH / 2;
-      ctx.fillStyle = '#f01414';
+      ctx.fillStyle = inv ? INV_GREEN : '#f01414';
       sorteoFit(ctx, titulo, '{px}px Anton, Impact, sans-serif', 860, 108);
       ctx.fillText(titulo, W / 2, blockTop + tCap);
       if (sub) {
@@ -3148,14 +3178,15 @@ const auth = getAuth(app);
 
       // Cupos
       ctx.fillStyle = '#000';
-      const cuposTxt = `${cupos} ${cupos === 1 ? 'cupo disponible' : 'cupos disponibles'}✅`;
+      const cuposTxt = inv ? `${meta} personas al grupo✅` : `${cupos} ${cupos === 1 ? 'cupo disponible' : 'cupos disponibles'}✅`;
       sorteoFit(ctx, cuposTxt, '{px}px Anton, Impact, sans-serif', 700, 74);
       ctx.fillText(cuposTxt, W / 2, 1535);
 
       // Precio
       ctx.fillStyle = '#222';
       ctx.font = '400 36px "DM Sans", sans-serif';
-      const precioTxt = `${Number(precio).toLocaleString('es-PY')}Gs por cupo${sinLimite ? ', sin límite de cupos por persona❗' : ''}`;
+      const cfgI = invCfg();
+      const precioTxt = inv ? `Que al menos 1 compre. Solo ${INV_DIAS} días${cfgI && invActive() ? ', hasta el ' + invDate(cfgI.end) : ''}❗` : `${Number(precio).toLocaleString('es-PY')}Gs por cupo${sinLimite ? ', sin límite de cupos por persona❗' : ''}`;
       const lines = sorteoWrap(ctx, precioTxt, 400);
       lines.forEach((ln, i) => ctx.fillText(ln, W / 2, 1606 + i * 51));
 
@@ -3178,7 +3209,7 @@ const auth = getAuth(app);
   window.sorteoDescargar = function(cid) {
     const canvas = document.getElementById(typeof cid === 'string' ? cid : 'sorteo-canvas');
     const a = document.createElement('a');
-    a.download = typeof cid === 'string' ? 'invita-y-gana-eshara.png' : 'sorteo-eshara.png';
+    a.download = window.sorteoMode === 'inv' ? 'invita-y-gana-eshara.png' : 'sorteo-eshara.png';
     a.href = canvas.toDataURL('image/png');
     a.click();
   };
@@ -3186,7 +3217,7 @@ const auth = getAuth(app);
     const canvas = document.getElementById(typeof cid === 'string' ? cid : 'sorteo-canvas');
     canvas.toBlob(async blob => {
       if (!blob) { sorteoVer(cid); return; }
-      const file = new File([blob], typeof cid === 'string' ? 'invita-y-gana-eshara.png' : 'sorteo-eshara.png', { type: 'image/png' });
+      const file = new File([blob], window.sorteoMode === 'inv' ? 'invita-y-gana-eshara.png' : 'sorteo-eshara.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file] }); return; }
         catch(e) { if (e && e.name === 'AbortError') return; }
@@ -3316,19 +3347,9 @@ const auth = getAuth(app);
   window.openInvAdmin = function() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(INV_ADM_KEY) || '{}'); } catch (e) {}
-    const list = products.filter(p => p.img).sort((a, b) => ((a.brand || '') + ' ' + (a.name || '')).localeCompare((b.brand || '') + ' ' + (b.name || '')));
-    const opts = list.map(p => '<option value="' + sorteoEsc(p.firestoreId) + '">' + sorteoEsc(p.brand) + ' ' + sorteoEsc(p.name) + (isFull(p) ? ' (' + sorteoEsc(fullShort(p)) + ')' : '') + '</option>').join('');
-    [1, 2, 3, 4].forEach((n, i) => {
-      const el = document.getElementById('invf-p' + n);
-      el.innerHTML = '<option value="">' + (n === 1 ? '— Elegir perfume —' : '— Ninguno —') + '</option>' + opts;
-      const id = saved.ids && saved.ids[i];
-      el.value = list.some(p => p.firestoreId === id) ? id : '';
-    });
     const c = invCfg();
     document.getElementById('invf-meta').value = (c && c.meta) || saved.meta || 30;
     document.getElementById('invf-ml').value = (c && c.ml) || saved.ml || 3;
-    document.getElementById('invf-canvas').style.display = 'none';
-    document.getElementById('invf-actions').style.display = 'none';
     document.getElementById('invadm-list').innerHTML = '';
     invAdmStatus();
     document.getElementById('invadm-overlay').classList.add('open');
@@ -3412,99 +3433,6 @@ const auth = getAuth(app);
     }
   };
 
-  // ── Imagen para promocionar (misma base que la del sorteo, sin rojo) ──
-  window.generarInvFlyer = async function() {
-    const sel = [1, 2, 3, 4].map(n => document.getElementById('invf-p' + n).value).filter(Boolean)
-      .map(id => products.find(x => x.firestoreId === id)).filter(Boolean);
-    if (sel.length < 1) { alert('Elegí al menos 1 perfume.'); return; }
-    const meta = parseInt(document.getElementById('invf-meta').value) || 30;
-    const ml = parseInt(document.getElementById('invf-ml').value) || 3;
-    try { localStorage.setItem(INV_ADM_KEY, JSON.stringify({ ids: [1, 2, 3, 4].map(n => document.getElementById('invf-p' + n).value), meta, ml })); } catch (e) {}
-    const c = invCfg();
-    const hasta = c && invActive() ? ' · HASTA EL ' + invDate(c.end) : '';
-    const btn = document.getElementById('invf-gen-btn');
-    btn.textContent = 'Generando...'; btn.disabled = true;
-    try {
-      try { await Promise.all([document.fonts.load('100px Anton'), document.fonts.load('400 40px "DM Sans"')]); } catch (e) {}
-      const [logo, ...imgs] = await Promise.all([sorteoLogo(), ...sel.map(p => sorteoLoadImg(p.img))]);
-      const canvas = document.getElementById('invf-canvas');
-      const ctx = canvas.getContext('2d');
-      const W = 1080, H = 1920;
-      canvas.width = W; canvas.height = H;
-      canvas.style.display = 'block';
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
-      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.letterSpacing = '0px';
-      if (logo) { const lw = logo.width * 1.2, lh = logo.height * 1.2; ctx.drawImage(logo, (W - lw) / 2, 95 * 1.2, lw, lh); }
-
-      // Perfumes
-      const MAXW = 980, AREA_BOTTOM = 1330, GAP_BETWEEN = 34, ROW_GAP = 40;
-      const items = sel.map((p, i) => ({ p, b: imgs[i] ? sorteoBottle(p, imgs[i]) : null })).filter(it => it.b);
-      if (!items.length) throw new Error('sin imágenes');
-      const rowsIdx = items.length === 4 ? [[0, 1], [2, 3]] : [items.map((_, i) => i)];
-      const rows = rowsIdx.map(r => r.map(i => items[i]));
-      let s = 1;
-      rows.forEach(row => {
-        const sumUnits = row.reduce((a, it) => a + it.b.w, 0);
-        s = Math.min(s, (MAXW - (row.length - 1) * GAP_BETWEEN) / sumUnits);
-      });
-      const rowMax = rows.map(row => Math.max(...row.map(it => it.b.h)));
-      s = Math.min(s, ((rows.length === 2 ? 780 : 700) - (rows.length - 1) * ROW_GAP) / rowMax.reduce((a, b) => a + b, 0));
-      const baselines = rows.length === 2 ? [AREA_BOTTOM - s * rowMax[1] - ROW_GAP, AREA_BOTTOM] : [AREA_BOTTOM];
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-      ctx.globalCompositeOperation = 'multiply';
-      rows.forEach((row, ri) => {
-        const rowW = row.reduce((a, it) => a + s * it.b.w, 0) + (row.length - 1) * GAP_BETWEEN;
-        let x = (W - rowW) / 2;
-        row.forEach(it => {
-          const tw = Math.round(s * it.b.w), th = Math.round(s * it.b.h);
-          ctx.drawImage(sorteoSharpBottle(it.b.c, tw, th), Math.round(x), Math.round(baselines[ri] - th));
-          x += s * it.b.w + GAP_BETWEEN;
-        });
-      });
-      ctx.globalCompositeOperation = 'source-over';
-
-      // Título (verde) y subtítulo, centrados entre el logo y los perfumes
-      const titulo = 'INVITÁ Y GANÁ';
-      const sub = 'UN DECANT DE ' + ml + ' ML GRATIS';
-      const logoBottom = logo ? 95 * 1.2 + logo.height * 1.2 : 240;
-      const perfTop = Math.min(...rows[0].map(it => baselines[0] - s * it.b.h));
-      const tpx = sorteoFit(ctx, titulo, '{px}px Anton, Impact, sans-serif', 900, 130);
-      const tCap = tpx * 0.74;
-      const spx = sorteoFit(ctx, sub, '{px}px Anton, Impact, sans-serif', 860, 62);
-      const sCap = spx * 0.74;
-      const blockH = tCap + 40 + sCap;
-      const blockTop = (logoBottom + perfTop) / 2 - blockH / 2;
-      ctx.fillStyle = INV_GREEN;
-      sorteoFit(ctx, titulo, '{px}px Anton, Impact, sans-serif', 900, 130);
-      ctx.fillText(titulo, W / 2, blockTop + tCap);
-      ctx.fillStyle = '#000';
-      sorteoFit(ctx, sub, '{px}px Anton, Impact, sans-serif', 860, 62);
-      ctx.fillText(sub, W / 2, blockTop + tCap + 40 + sCap);
-
-      // Condiciones
-      ctx.fillStyle = '#000';
-      const l1 = 'SUMÁ ' + meta + ' PERSONAS AL GRUPO';
-      sorteoFit(ctx, l1, '{px}px Anton, Impact, sans-serif', 900, 66);
-      ctx.fillText(l1, W / 2, 1445);
-      const l2 = 'Y QUE AL MENOS 1 COMPRE ✅';
-      sorteoFit(ctx, l2, '{px}px Anton, Impact, sans-serif', 900, 66);
-      ctx.fillText(l2, W / 2, 1525);
-      ctx.fillStyle = INV_GREEN;
-      const l3 = 'SOLO ' + INV_DIAS + ' DÍAS ⏳' + hasta;
-      sorteoFit(ctx, l3, '{px}px Anton, Impact, sans-serif', 900, 58);
-      ctx.fillText(l3, W / 2, 1620);
-      ctx.fillStyle = '#222';
-      ctx.font = '400 34px "DM Sans", sans-serif';
-      sorteoWrap(ctx, 'Entrá a nuestra web, tocá “Invitá y ganá” y compartí tu link con tus amigos.', 760)
-        .forEach((ln, i) => ctx.fillText(ln, W / 2, 1712 + i * 48));
-
-      document.getElementById('invf-actions').style.display = 'flex';
-      canvas.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (e) {
-      alert('No se pudo generar la imagen. Probá de nuevo.');
-    }
-    btn.textContent = 'Generar imagen'; btn.disabled = false;
-  };
   // ── FIN INVITÁ Y GANÁ ──
 
   // ── FIN SORTEO ──
