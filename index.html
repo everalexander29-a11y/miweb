@@ -665,6 +665,7 @@ body.has-order-bar { padding-bottom: 72px; }
     <button class="filter-btn" data-filter="femenino">Femeninos</button>
     <button class="filter-btn" data-filter="unisex">Unisex</button>
     <button class="filter-btn" data-filter="completos">Perfumes completos</button>
+    <button class="filter-btn" data-filter="mist">Body Mist &amp; Shimmer</button>
   </div>
   <div class="featured" id="featured" style="display:none;">
     <div class="featured-title">Ofertas y más pedidos</div>
@@ -995,11 +996,12 @@ body.has-order-bar { padding-bottom: 72px; }
           </div>
           <div class="admin-field">
             <label>Categoría</label>
-            <select id="f-cat">
+            <select id="f-cat" onchange="if(this.value==='mist'){const t=document.getElementById('f-tipo');if(t.value==='decant'){t.value='completo';toggleTipoFields('f');}}">
               <option value="todos">General</option>
               <option value="masculino">Masculino</option>
               <option value="femenino">Femenino</option>
               <option value="unisex">Unisex</option>
+              <option value="mist">Body Mist &amp; Shimmer</option>
             </select>
           </div>
         </div>
@@ -1082,11 +1084,12 @@ body.has-order-bar { padding-bottom: 72px; }
       <div class="admin-row">
         <div class="admin-field"><label>Marca</label><input type="text" id="edit-brand"></div>
         <div class="admin-field"><label>Categoría</label>
-          <select id="edit-cat">
+          <select id="edit-cat" onchange="if(this.value==='mist'){const t=document.getElementById('edit-tipo');if(t.value==='decant'){t.value='completo';toggleTipoFields('edit');}}">
             <option value="todos">General</option>
             <option value="masculino">Masculino</option>
             <option value="femenino">Femenino</option>
             <option value="unisex">Unisex</option>
+            <option value="mist">Body Mist &amp; Shimmer</option>
           </select>
         </div>
       </div>
@@ -1431,6 +1434,7 @@ const auth = getAuth(app);
 
   let products = [];
   function noteText(p) { const n = (p && p.notes || '').trim(); return n === '—' ? '' : n; }
+  function isMist(p) { return !!p && p.category === 'mist'; }
   function isFull(p) { return !!p && (p.tipo === 'completo' || p.tipo === 'tester'); }
   function fullShort(p) { return (p.tipo === 'tester' ? 'Tester' : 'Frasco') + (p.mlFull ? ' ' + p.mlFull + 'ml' : ''); }
   let currentProduct = null;
@@ -1712,7 +1716,7 @@ const auth = getAuth(app);
   // Productos que van en la fila de destacados (se usa también para no repetirlos en la grilla)
   function getFeaturedItems() {
     if (!((activeFilter === 'todos' || activeFilter === 'completos') && !searchQuery)) return [];
-    return products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot') && (activeFilter === 'completos' ? isFull(p) : !isFull(p))).slice(0, 10);
+    return products.filter(p => p.agotado !== true && (p.badge === 'sale' || p.badge === 'hot') && !isMist(p) && (activeFilter === 'completos' ? isFull(p) : !isFull(p))).slice(0, 10);
   }
 
   // Fila de ofertas y más pedidos: en "Decants" muestra decants y en "Perfumes completos" muestra completos (sin búsqueda)
@@ -1767,17 +1771,18 @@ const auth = getAuth(app);
       p.brand.toLowerCase().includes(searchQuery) ||
       (p.notes || '').toLowerCase().includes(searchQuery);
     let filtered;
-    if (activeFilter === 'completos') filtered = products.filter(isFull);
-    else if (activeFilter === 'todos') filtered = products.filter(p => !isFull(p));
-    else filtered = products.filter(p => !isFull(p) && p.category === activeFilter);
+    if (activeFilter === 'mist') filtered = products.filter(isMist);
+    else if (activeFilter === 'completos') filtered = products.filter(p => isFull(p) && !isMist(p));
+    else if (activeFilter === 'todos') filtered = products.filter(p => !isFull(p) && !isMist(p));
+    else filtered = products.filter(p => !isFull(p) && !isMist(p) && p.category === activeFilter);
     if (searchQuery) filtered = filtered.filter(matchesSearch);
     // Los que ya aparecen arriba en destacados no se repiten en la grilla (Decants y Perfumes completos)
     const featuredIds = new Set(getFeaturedItems().map(p => p.firestoreId));
     if (featuredIds.size) filtered = filtered.filter(p => !featuredIds.has(p.firestoreId));
     let emptySearchMsg = 'Sin resultados.';
-    if (searchQuery && !filtered.length) {
+    if (searchQuery && !filtered.length && activeFilter !== 'mist') {
       const inCompletos = activeFilter === 'completos';
-      const n = products.filter(p => (inCompletos ? !isFull(p) : isFull(p)) && matchesSearch(p)).length;
+      const n = products.filter(p => !isMist(p) && (inCompletos ? !isFull(p) : isFull(p)) && matchesSearch(p)).length;
       if (n > 0) emptySearchMsg = inCompletos
         ? 'Sin resultados en perfumes completos. Hay ' + n + ' en <button class="link-btn" onclick="switchSection(\'todos\')">Decants</button>.'
         : 'Sin resultados en decants. Hay ' + n + ' en <button class="link-btn" onclick="switchSection(\'completos\')">Perfumes completos</button>.';
@@ -1787,7 +1792,7 @@ const auth = getAuth(app);
     const moreWrap = document.getElementById('load-more-wrap');
     if (!filtered.length) {
       if (moreWrap) moreWrap.style.display = 'none';
-      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? emptySearchMsg : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : 'No hay productos en esta categoría todavía.') + '</p>';
+      grid.innerHTML = '<p style="text-align:center;color:var(--light);font-style:italic;padding:3rem;grid-column:1/-1;">' + (searchQuery ? emptySearchMsg : activeFilter === 'completos' ? 'Próximamente: perfumes completos.' : activeFilter === 'mist' ? 'Próximamente: body mist y shimmer.' : 'No hay productos en esta categoría todavía.') + '</p>';
       return;
     }
     grid.innerHTML = filtered.slice(0, visibleCount).map((p) => {
@@ -1819,7 +1824,12 @@ const auth = getAuth(app);
     }
     if (adminMode) document.body.classList.add('admin-mode');
     const counter = document.getElementById('product-counter');
-    if (counter) { const full = activeFilter === 'completos'; const n = products.filter(x => isFull(x) === full).length; counter.textContent = n + (full ? ' perfume' : ' fragancia') + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : ''); }
+    if (counter) {
+      let n, one;
+      if (activeFilter === 'mist') { n = products.filter(isMist).length; one = ' producto'; }
+      else { const full = activeFilter === 'completos'; n = products.filter(x => !isMist(x) && isFull(x) === full).length; one = full ? ' perfume' : ' fragancia'; }
+      counter.textContent = n + one + (n !== 1 ? 's' : '') + ' disponible' + (n !== 1 ? 's' : '');
+    }
   }
 
   window.openDetail = function(firestoreId) {
@@ -3461,7 +3471,7 @@ const auth = getAuth(app);
 
   // ── SIMILAR PRODUCTS ──────────────────────────────────────
   function renderSimilar(p) {
-    const similar = products.filter(x => x.firestoreId !== p.firestoreId && isFull(x) === isFull(p) && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 4);
+    const similar = products.filter(x => x.firestoreId !== p.firestoreId && isFull(x) === isFull(p) && isMist(x) === isMist(p) && (x.category === p.category || (x.notes && p.notes && x.notes.split('·')[0].trim() === p.notes.split('·')[0].trim()))).slice(0, 4);
     const grid = document.getElementById('similar-grid');
     const section = document.getElementById('similar-section');
     if (!similar.length) { section.style.display = 'none'; return; }
