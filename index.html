@@ -3524,10 +3524,15 @@ const auth = getAuth(app);
       const FONT = '700 64px Montserrat, "DM Sans", Arial, sans-serif';
       ctx.font = FONT;
       const lines = sizes.map(z => ({ a: z.ml + 'ML', b: Number(z.price).toLocaleString('es-PY') + 'Gs' }));
+      // El bloque completo (tamaño + precio) queda centrado en la imagen
+      const wA = Math.max(...lines.map(ln => ctx.measureText(ln.a).width));
+      const wB = Math.max(...lines.map(ln => ctx.measureText(ln.b).width));
+      const GAP_T = 56;
+      const xA = (W - (wA + GAP_T + wB)) / 2 + wA;   // borde derecho de la columna de tamaños
       lines.forEach((ln, i) => {
         const y = 1485 + i * 96;
-        ctx.textAlign = 'right'; ctx.fillText(ln.a, W / 2 - 28, y);
-        ctx.textAlign = 'left'; ctx.fillText(ln.b, W / 2 + 28, y);
+        ctx.textAlign = 'right'; ctx.fillText(ln.a, xA, y);
+        ctx.textAlign = 'left'; ctx.fillText(ln.b, xA + GAP_T, y);
       });
       ctx.textAlign = 'center';
 
